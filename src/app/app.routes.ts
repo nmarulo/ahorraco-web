@@ -27,6 +27,12 @@ export const routes: Routes = [
             (m) => m.InviteParticipants
           )
       },
+      {
+        path: 'pools/:poolId/draw',
+        title: 'Ahorraco · Sorteo del orden',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/draw-order/draw-order').then((m) => m.DrawOrder)
+      },
       { path: '', pathMatch: 'full', redirectTo: 'create-pool' }
     ]
   },

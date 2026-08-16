@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, delay, of, throwError } from 'rxjs';
 
+import { CreateDrawReq } from '@app/models/create-draw-req';
 import { CreatePoolReq } from '@app/models/create-pool-req';
 import { CreatePoolRes } from '@app/models/create-pool-res';
 import { GetPoolInvitationRes } from '@app/models/get-pool-invitation-res';
@@ -8,7 +9,8 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { JoinPoolReq } from '@app/models/join-pool-req';
 import { JoinPoolRes } from '@app/models/join-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
-import { PoolsMockStore, StoredPool } from '@app/shared/mock/pools-mock-store';
+import { TurnRes } from '@app/models/turn-res';
+import { PoolsMockStore, StoredPool, StoredTurn } from '@app/shared/mock/pools-mock-store';
 
 /**
  * Cliente del recurso `pools` de la API REST.
@@ -57,7 +59,8 @@ export class PoolsService {
       monthlyFee: request.monthlyFee,
       numParticipants: request.numParticipants,
       startDate: request.startDate,
-      participants: []
+      participants: [],
+      turns: []
     };
     this.store.savePool(pool);
 
@@ -161,6 +164,53 @@ export class PoolsService {
   }
 
   /**
+   * Orden de cobro ya sorteado. Vacío si todavía no se ha hecho el sorteo.
+   *
+   * Es el endpoint de I-04; I-03 lo usa para saber si el sorteo ya está hecho y
+   * no dejar repetirlo.
+   */
+  getOrder(poolId: string): Observable<TurnRes[]> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.get<TurnRes[]>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/order`);
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    return this.simulate(this.toTurnsRes(pool));
+  }
+
+  /**
+   * Sortea el orden de cobro entre quienes ya se han unido.
+   *
+   * Es irreversible a propósito: hay dinero real de por medio y el orden tiene
+   * que ser fiable. Si ya se sorteó, falla en vez de rehacerlo.
+   */
+  createDraw(poolId: string, request: CreateDrawReq): Observable<TurnRes[]> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.post<TurnRes[]>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/draw`, request);
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    if (pool.turns.length > 0) {
+      return this.simulateNotFound('El sorteo de esta porra ya está hecho.');
+    }
+
+    if (pool.participants.length < pool.numParticipants) {
+      return this.simulateNotFound('Todavía falta gente por unirse.');
+    }
+
+    const turns = this.buildTurns(pool, request);
+    this.store.saveDraw(poolId, turns, request.organizerParticipantId);
+
+    return this.simulate(this.toTurnsRes({ ...pool, turns }));
+  }
+
+  /**
    * Compone el código de gestión que se le propone al organizador: las
    * iniciales del nombre de la porra más un sufijo aleatorio.
    *
@@ -195,6 +245,61 @@ export class PoolsService {
       fullName: participant.fullName,
       ...(participant.phone ? { phone: participant.phone } : {})
     };
+  }
+
+  /**
+   * Reparte los meses entre los participantes.
+   *
+   * Si el organizador se fija como primero, su turno sale del sorteo y solo se
+   * revuelve el resto.
+   */
+  private buildTurns(pool: StoredPool, request: CreateDrawReq): StoredTurn[] {
+    const pinnedId = request.organizerFirst ? request.organizerParticipantId : undefined;
+    const pinned = pool.participants.filter((person) => person.participantId === pinnedId);
+    const rest = this.shuffle(
+      pool.participants.filter((person) => person.participantId !== pinnedId)
+    );
+
+    return [...pinned, ...rest].map((person, index) => ({
+      position: index + 1,
+      participantId: person.participantId,
+      month: this.addMonths(pool.startDate, index),
+      pinned: person.participantId === pinnedId
+    }));
+  }
+
+  /** Pasa los turnos guardados al DTO, resolviendo el nombre de cada uno. */
+  private toTurnsRes(pool: StoredPool): TurnRes[] {
+    return pool.turns.map((turn) => ({
+      position: turn.position,
+      participantId: turn.participantId,
+      fullName:
+        pool.participants.find((person) => person.participantId === turn.participantId)?.fullName ??
+        '',
+      month: turn.month,
+      pinned: turn.pinned
+    }));
+  }
+
+  /** Baraja Fisher-Yates, sin repetir a nadie. */
+  private shuffle<T>(items: readonly T[]): T[] {
+    const result = [...items];
+    const random = crypto.getRandomValues(new Uint32Array(result.length));
+
+    for (let index = result.length - 1; index > 0; index--) {
+      const target = random[index] % (index + 1);
+      [result[index], result[target]] = [result[target], result[index]];
+    }
+
+    return result;
+  }
+
+  /** Suma meses a un `AAAA-MM` y devuelve otro `AAAA-MM`. */
+  private addMonths(startDate: string, offset: number): string {
+    const [year, month] = startDate.split('-').map(Number);
+    const date = new Date(year, month - 1 + offset, 1);
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
 
   /** Envuelve una respuesta simulada con la latencia de red de mentira. */

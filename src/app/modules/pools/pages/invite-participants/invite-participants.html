@@ -171,14 +171,16 @@
               <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()">
                 <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
               </button>
-              <span class="text-secondary fs-7">
-                <i class="bi bi-info-circle me-1"></i>
-                @if (everyoneJoined()) {
-                  Ya podéis sortear el orden (I-03, aún sin hacer).
-                } @else {
+              @if (everyoneJoined()) {
+                <a [routerLink]="['/pools', poolId(), 'draw']" class="btn btn-primary btn-sm">
+                  <i class="bi bi-shuffle me-1"></i> Ir al sorteo
+                </a>
+              } @else {
+                <span class="text-secondary fs-7">
+                  <i class="bi bi-info-circle me-1"></i>
                   El sorteo se habilita cuando estéis {{ currentPool.numParticipants }}.
-                }
-              </span>
+                </span>
+              }
             </div>
           </div>
           <!--end::Participantes-->

@@ -13,6 +13,16 @@ export interface StoredParticipant {
   phone?: string;
 }
 
+/** Un turno del orden de cobro ya sorteado. */
+export interface StoredTurn {
+  position: number;
+  participantId: string;
+  /** Mes en que cobra, en formato `AAAA-MM`. */
+  month: string;
+  /** Si la posición se reservó en vez de sortearse (organizador primero). */
+  pinned: boolean;
+}
+
 /** Porra tal y como la guarda el almacén simulado. */
 export interface StoredPool {
   poolId: string;
@@ -23,6 +33,15 @@ export interface StoredPool {
   numParticipants: number;
   startDate: string;
   participants: StoredParticipant[];
+  /** Vacío mientras no se haya sorteado; el sorteo se hace una sola vez. */
+  turns: StoredTurn[];
+  /**
+   * Cuál de los participantes es el organizador.
+   *
+   * Solo se sabe si él mismo lo dice al sortear: como se une por el enlace
+   * igual que todos, nada enlaza su `managementCode` con su participante.
+   */
+  organizerParticipantId?: string;
 }
 
 /**
@@ -64,6 +83,21 @@ export class PoolsMockStore {
     }
 
     pool.participants.push(participant);
+    this.writeAll(pools);
+  }
+
+  /** Guarda el orden sorteado. Solo se hace una vez por porra. */
+  saveDraw(poolId: string, turns: StoredTurn[], organizerParticipantId?: string): void {
+    const pools = this.readAll();
+    const pool = pools.find((candidate) => candidate.poolId === poolId);
+    if (!pool) {
+      return;
+    }
+
+    pool.turns = turns;
+    if (organizerParticipantId) {
+      pool.organizerParticipantId = organizerParticipantId;
+    }
     this.writeAll(pools);
   }
 
