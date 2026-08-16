@@ -44,14 +44,16 @@
 
               <div class="alert alert-info mb-0" role="alert">
                 <i class="bi bi-info-circle-fill me-2"></i>
-                El siguiente paso es invitar a los participantes por enlace, pero esa pantalla
-                todavía no está hecha.
+                El siguiente paso es repartir el enlace de invitación para que se una la gente.
               </div>
             </div>
-            <div class="card-footer">
+            <div class="card-footer d-flex justify-content-between">
               <button type="button" class="btn btn-outline-secondary" (click)="startAnother()">
                 <i class="bi bi-arrow-counterclockwise me-1"></i> Crear otra porra
               </button>
+              <a [routerLink]="['/pools', created.poolId, 'invite']" class="btn btn-primary">
+                Invitar participantes <i class="bi bi-arrow-right ms-1"></i>
+              </a>
             </div>
           </div>
           <!--end::Porra creada-->

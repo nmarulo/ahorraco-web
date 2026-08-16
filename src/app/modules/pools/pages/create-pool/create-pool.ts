@@ -11,7 +11,7 @@ import { PoolsService } from '@app/services/pages/pools.service';
 
 @Component({
   selector: 'app-create-pool',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './create-pool.html',
   styleUrl: './create-pool.css'
 })

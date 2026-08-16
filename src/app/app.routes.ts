@@ -1,13 +1,28 @@
 import { Routes } from '@angular/router';
 
+import { AppWrapper } from '@app/layout/app-wrapper/app-wrapper';
+
 export const routes: Routes = [
   {
-    path: 'create-pool',
-    title: 'Ahorraco · Crear una porra',
-    loadComponent: () =>
-      import('@app/modules/pools/pages/create-pool/create-pool').then((m) => m.CreatePool)
+    path: '',
+    component: AppWrapper,
+    children: [
+      {
+        path: 'create-pool',
+        title: 'Ahorraco · Crear una porra',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/create-pool/create-pool').then((m) => m.CreatePool)
+      },
+      {
+        path: 'pools/:poolId/invite',
+        title: 'Ahorraco · Invitar participantes',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/invite-participants/invite-participants').then(
+            (m) => m.InviteParticipants
+          )
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'create-pool' }
+    ]
   },
-  // Mientras I-01 sea la única pantalla, la raíz entra directamente en ella.
-  { path: '', pathMatch: 'full', redirectTo: 'create-pool' },
   { path: '**', redirectTo: '' }
 ];

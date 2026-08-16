@@ -1,0 +1,194 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h1 class="mb-0 fs-3">Invitar participantes</h1>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    @if (errorMessage(); as message) {
+      <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ message }}
+        <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
+      </div>
+    } @else if (pool(); as currentPool) {
+      <div class="row">
+        <div class="col-lg-5">
+          <!--begin::Enlace de invitación-->
+          <div class="card card-primary card-outline hrr-fade-in">
+            <div class="card-header">
+              <h2 class="card-title fs-5 mb-0">
+                <i class="bi bi-link-45deg me-1"></i> Enlace de invitación
+              </h2>
+            </div>
+            <div class="card-body">
+              <p class="text-secondary">
+                Comparte este enlace por WhatsApp. Quien lo abra entra con su nombre completo, sin
+                crear cuenta ni recordar contraseñas. El teléfono es opcional.
+              </p>
+
+              <label for="invitationLink" class="form-label fw-semibold">Enlace del grupo</label>
+              <div class="input-group mb-1">
+                <input
+                  type="text"
+                  id="invitationLink"
+                  class="form-control hrr-link-box"
+                  [value]="invitationLink()"
+                  readonly
+                />
+                <button class="btn btn-primary" type="button" (click)="copyLink()">
+                  <i class="bi bi-clipboard me-1"></i> Copiar
+                </button>
+              </div>
+              @if (copiedLink()) {
+                <p class="text-success fs-7 mb-0" role="status">
+                  <i class="bi bi-check2 me-1"></i> Enlace copiado al portapapeles.
+                </p>
+              }
+
+              <div class="d-grid gap-2 mt-3 mb-4">
+                <a [href]="invitationLink()" class="btn btn-outline-secondary">
+                  <i class="bi bi-eye me-1"></i> Ver lo que verá quien lo abra
+                </a>
+                <a
+                  [href]="whatsappLink()"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-success"
+                >
+                  <i class="bi bi-whatsapp me-1"></i> Compartir por WhatsApp
+                </a>
+              </div>
+
+              <hr />
+
+              <!--begin::Recordatorio del código de gestión-->
+              <p class="fw-semibold mb-1"><i class="bi bi-key me-1"></i> Tu código de gestión</p>
+              <p class="text-secondary fs-7">
+                Es solo tuyo: te identifica como organizador al abrir la URL del grupo.
+                <strong>No lo compartas</strong> junto al enlace de invitación.
+              </p>
+              <div class="input-group input-group-sm">
+                <input
+                  type="text"
+                  class="form-control hrr-link-box"
+                  [value]="currentPool.managementCode"
+                  aria-label="Código de gestión"
+                  readonly
+                />
+                <button class="btn btn-outline-secondary" type="button" (click)="copyCode()">
+                  <i class="bi bi-clipboard me-1"></i> Copiar
+                </button>
+              </div>
+              @if (copiedCode()) {
+                <p class="text-success fs-7 mt-1 mb-0" role="status">
+                  <i class="bi bi-check2 me-1"></i> Código copiado al portapapeles.
+                </p>
+              }
+              <!--end::Recordatorio del código de gestión-->
+            </div>
+          </div>
+          <!--end::Enlace de invitación-->
+        </div>
+
+        <div class="col-lg-7">
+          <!--begin::Participantes-->
+          <div class="card hrr-fade-in">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h2 class="card-title fs-5 mb-0"><i class="bi bi-people me-1"></i> Participantes</h2>
+              <span class="badge text-bg-primary">
+                {{ joinedCount() }} de {{ currentPool.numParticipants }} dentro
+              </span>
+            </div>
+
+            <div class="card-body pb-0">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-secondary fs-7">
+                  @if (remaining() === 1) {
+                    Falta 1 por unirse para poder sortear
+                  } @else if (remaining() > 1) {
+                    Faltan {{ remaining() }} por unirse para poder sortear
+                  } @else {
+                    Ya estáis todos
+                  }
+                </span>
+                <span class="fw-semibold">{{ progress() }} %</span>
+              </div>
+              <div class="progress mb-3" style="height: 0.5rem">
+                <div
+                  class="progress-bar bg-primary"
+                  role="progressbar"
+                  [style.width.%]="progress()"
+                  [attr.aria-valuenow]="progress()"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+            </div>
+
+            <div class="card-body p-0">
+              @if (joinedCount() === 0) {
+                <p class="text-secondary text-center py-4 mb-0">
+                  <i class="bi bi-person-plus d-block fs-2 mb-2"></i>
+                  Todavía no se ha unido nadie. Comparte el enlace y ve pulsando «Actualizar».
+                </p>
+              } @else {
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Participante</th>
+                      <th class="d-none d-md-table-cell">
+                        Teléfono
+                        <span class="text-secondary fw-normal fs-7">(opcional)</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (person of participants(); track person.participantId) {
+                      <tr>
+                        <td>
+                          <span class="hrr-turn-chip hrr-turn-chip-sm me-2">
+                            {{ initials(person.fullName) }}
+                          </span>
+                          {{ person.fullName }}
+                        </td>
+                        <td class="d-none d-md-table-cell text-secondary">
+                          @if (person.phone) {
+                            {{ person.phone }}
+                          } @else {
+                            <span class="fst-italic fs-7">Sin teléfono</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+
+            <div class="card-footer d-flex justify-content-between align-items-center">
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+              </button>
+              <span class="text-secondary fs-7">
+                <i class="bi bi-info-circle me-1"></i>
+                @if (everyoneJoined()) {
+                  Ya podéis sortear el orden (I-03, aún sin hacer).
+                } @else {
+                  El sorteo se habilita cuando estéis {{ currentPool.numParticipants }}.
+                }
+              </span>
+            </div>
+          </div>
+          <!--end::Participantes-->
+        </div>
+      </div>
+    } @else if (loading()) {
+      <p class="text-secondary" role="status">
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        Cargando la porra…
+      </p>
+    }
+  </div>
+</div>
