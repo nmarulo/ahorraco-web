@@ -1,0 +1,172 @@
+<main class="login-box hrr-fade-in">
+  <div class="login-logo">
+    <span class="hrr-brand-icon"><i class="bi bi-piggy-bank-fill"></i></span>
+    <span><b>Ahorra</b>co</span>
+  </div>
+
+  @if (loading()) {
+    <p class="text-center text-secondary" role="status">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Abriendo la invitación…
+    </p>
+  } @else if (pool(); as currentPool) {
+    <!--begin::Resumen de la porra a la que te invitan-->
+    <div class="card mb-3">
+      <div class="card-body text-center">
+        <p class="text-secondary fs-7 text-uppercase mb-1">Te han invitado a</p>
+        <h1 class="fs-4 mb-3">{{ currentPool.name }}</h1>
+
+        <p class="text-secondary fs-7 mb-3">
+          Ya hay {{ currentPool.joinedCount }} de {{ currentPool.numParticipants }} personas dentro
+        </p>
+
+        <div class="row text-center">
+          <div class="col-4 border-end">
+            <p class="text-secondary fs-7 text-uppercase mb-1">Cuota</p>
+            <p class="fs-5 fw-bold mb-0">{{ currentPool.monthlyFee | number: '1.0-2' }} €</p>
+            <p class="text-secondary fs-7 mb-0">al mes</p>
+          </div>
+          <div class="col-4 border-end">
+            <p class="text-secondary fs-7 text-uppercase mb-1">Duración</p>
+            <p class="fs-5 fw-bold mb-0">{{ currentPool.numParticipants }}</p>
+            <p class="text-secondary fs-7 mb-0">meses</p>
+          </div>
+          <div class="col-4">
+            <p class="text-secondary fs-7 text-uppercase mb-1">Cobras</p>
+            <p class="fs-5 fw-bold text-success mb-0">{{ monthlyPot() | number: '1.0-2' }} €</p>
+            <p class="text-secondary fs-7 mb-0">tu mes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::Resumen-->
+
+    @if (joined()) {
+      <!--begin::Ya dentro-->
+      <div class="card">
+        <div class="card-body text-center">
+          <p class="fs-1 mb-2 text-success"><i class="bi bi-check-circle-fill"></i></p>
+          <h2 class="fs-5 mb-2">Ya estás dentro</h2>
+          <p class="text-secondary mb-0">
+            El organizador te verá en la lista. Cuando estéis los
+            {{ currentPool.numParticipants }}, hará el sorteo del orden de cobro y podrás ver qué mes te
+            toca.
+          </p>
+        </div>
+      </div>
+      <!--end::Ya dentro-->
+    } @else if (isFull()) {
+      <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Esta porra ya está completa: hay {{ currentPool.numParticipants }} personas dentro. Habla con
+        quien te pasó el enlace.
+      </div>
+    } @else {
+      <!--begin::Alta sin contraseña-->
+      <div class="card">
+        <div class="card-body login-card-body">
+          <p class="login-box-msg">Entra con tu nombre completo. No hace falta contraseña.</p>
+
+          <form [formGroup]="form" (ngSubmit)="join()">
+            <label for="fullName" class="form-label">Tu nombre completo</label>
+            <div class="input-group mb-1">
+              <input
+                type="text"
+                id="fullName"
+                class="form-control"
+                [class.is-invalid]="isInvalid(form.controls.fullName)"
+                formControlName="fullName"
+                placeholder="Por ejemplo: Elena Cruz"
+              />
+              <div class="input-group-text"><span class="bi bi-person"></span></div>
+            </div>
+            @if (isInvalid(form.controls.fullName)) {
+              <div class="invalid-feedback d-block">Necesitamos tu nombre para reconocerte.</div>
+            }
+            <div class="form-text mb-3">
+              Ponlo completo: es lo que verá el resto del grupo para reconocerte.
+            </div>
+
+            <label for="phone" class="form-label">
+              Tu teléfono
+              <span class="text-secondary fw-normal">(opcional)</span>
+            </label>
+            <div class="input-group mb-1">
+              <input
+                type="tel"
+                id="phone"
+                class="form-control"
+                [class.is-invalid]="isInvalid(form.controls.phone)"
+                formControlName="phone"
+                placeholder="Por ejemplo: 600 11 22 33"
+              />
+              <div class="input-group-text"><span class="bi bi-phone"></span></div>
+            </div>
+            @if (isInvalid(form.controls.phone)) {
+              <div class="invalid-feedback d-block">
+                Ese teléfono no tiene buena pinta. Déjalo en blanco si prefieres.
+              </div>
+            }
+            <div class="form-text mb-3">
+              Puedes dejarlo en blanco. Si lo pones, le sirve al organizador para localizarte.
+            </div>
+
+            <div class="form-check mb-1">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="accepted"
+                [class.is-invalid]="isInvalid(form.controls.accepted)"
+                formControlName="accepted"
+              />
+              <label class="form-check-label fs-7" for="accepted">
+                Entiendo que me comprometo a pagar
+                <strong>{{ currentPool.monthlyFee | number: '1.0-2' }} € al mes durante
+                {{ currentPool.numParticipants }} meses</strong>
+                y que cobraré <strong>{{ monthlyPot() | number: '1.0-2' }} €</strong> el mes que me
+                toque.
+              </label>
+            </div>
+            @if (isInvalid(form.controls.accepted)) {
+              <div class="invalid-feedback d-block mb-2">
+                Marca la casilla para poder entrar.
+              </div>
+            }
+
+            @if (errorMessage(); as message) {
+              <div class="alert alert-danger mt-3 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+              </div>
+            }
+
+            <div class="d-grid mt-3 mb-3">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="sending()">
+                @if (sending()) {
+                  <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                  Entrando…
+                } @else {
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Unirme a la porra
+                }
+              </button>
+            </div>
+          </form>
+
+          <div class="alert alert-info mb-0" role="alert">
+            <i class="bi bi-shield-check me-2"></i>
+            <span class="fs-7">
+              Ahorraco <strong>no mueve dinero</strong>. Los pagos se hacen por Bizum, transferencia
+              o en efectivo, como siempre; aquí solo se apunta quién ha pagado y a quién le toca
+              cobrar.
+            </span>
+          </div>
+        </div>
+      </div>
+      <!--end::Alta sin contraseña-->
+    }
+  } @else {
+    <div class="alert alert-warning" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessage() }}
+    </div>
+  }
+</main>
