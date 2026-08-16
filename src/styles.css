@@ -1,1 +1,13 @@
-/* You can add global styles to this file, and also import other style files */
+@layer admin-lte, ahorraco, app-global-style;
+
+@import "@fontsource/source-sans-3/latin-400.css";
+@import "@fontsource/source-sans-3/latin-600.css";
+@import "@fontsource/source-sans-3/latin-700.css";
+@import "bootstrap-icons/font/bootstrap-icons.min.css";
+@import "overlayscrollbars/overlayscrollbars.css";
+
+@import "admin-lte/dist/css/adminlte.min.css" layer(admin-lte);
+@import "assets/ahorraco.css" layer(ahorraco);
+
+@layer app-global-style {
+}
