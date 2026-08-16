@@ -1,0 +1,9 @@
+# pnpm bloquea por defecto los scripts de instalación de las dependencias. Aquí se
+# declara explícitamente qué se permite construir; los que están a `false` no
+# hacen falta para este proyecto y se dejan anotados para que pnpm no vuelva a
+# preguntar en cada instalación.
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: false
+  lmdb: false
+  msgpackr-extract: false
