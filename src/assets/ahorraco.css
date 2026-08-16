@@ -1,0 +1,25 @@
+/*!
+ * Ahorraco — capa propia de estilos
+ * --------------------------------------------------------------------------
+ *
+ * Índice
+ *   1. Marca
+ */
+
+/* ------------------------------------------------------------------ *
+ * 1. Marca
+ * ------------------------------------------------------------------ */
+
+.ahorraco-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #198754, #20c997);
+  color: #fff;
+  font-size: 1rem;
+  margin-inline: 0.75rem 0.5rem;
+  flex-shrink: 0;
+}
