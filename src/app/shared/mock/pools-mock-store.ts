@@ -101,10 +101,10 @@ export class PoolsMockStore {
   }
 
   /**
-   * Marca o desmarca que un participante ha pagado su cuota de un mes. Crea el
-   * registro si es la primera vez que se toca ese mes.
+   * Marca que un participante ha pagado su cuota de un mes. Crea el registro si
+   * es la primera vez que se toca ese mes.
    */
-  setPaymentMarked(poolId: string, participantId: string, month: string, marked: boolean): void {
+  markPayment(poolId: string, participantId: string, month: string): void {
     const pools = this.readAll();
     const pool = pools.find((candidate) => candidate.poolId === poolId);
     if (!pool) {
@@ -116,9 +116,9 @@ export class PoolsMockStore {
     );
 
     if (payment) {
-      payment.marked = marked;
+      payment.marked = true;
     } else {
-      pool.payments.push({ participantId, month, marked, confirmed: false });
+      pool.payments.push({ participantId, month, marked: true, confirmed: false });
     }
 
     this.writeAll(pools);

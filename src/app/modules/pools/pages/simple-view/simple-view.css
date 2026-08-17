@@ -1,0 +1,10 @@
+:host {
+  display: block;
+}
+
+/* En español los meses van en minúscula, pero estos van sueltos como etiqueta,
+   así que se les pone mayúscula inicial. `text-capitalize` de Bootstrap no vale:
+   dejaría «Junio De 2026». */
+.month-label::first-letter {
+  text-transform: uppercase;
+}

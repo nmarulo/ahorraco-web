@@ -264,7 +264,7 @@ export class PoolsService {
       return this.simulateNotFound('No existe ninguna porra con ese identificador.');
     }
 
-    this.store.setPaymentMarked(poolId, participantId, month, true);
+    this.store.markPayment(poolId, participantId, month);
 
     return this.simulate({ participantId, month, marked: true, confirmed: false });
   }

@@ -9,6 +9,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('@app/modules/pools/pages/join-pool/join-pool').then((m) => m.JoinPool)
   },
+  // Vista simplificada: también va fuera del armazón, con el `<body>` desnudo.
+  {
+    path: 'pools/:poolId/simple',
+    title: 'Ahorraco · Vista sencilla',
+    loadComponent: () =>
+      import('@app/modules/pools/pages/simple-view/simple-view').then((m) => m.SimpleView)
+  },
   {
     path: '',
     component: AppWrapper,

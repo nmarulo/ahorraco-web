@@ -9,6 +9,7 @@
  *   4. Estados de pago
  *   5. Sorteo
  *   6. Utilidades varias
+ *   7. Vista simplificada
  */
 
 /* ------------------------------------------------------------------ *
@@ -227,5 +228,85 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. Vista simplificada
+ * ------------------------------------------------------------------ */
+
+.hrr-simple-view {
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: 1rem;
+}
+
+.hrr-simple-view .card {
+  border-radius: 1rem;
+}
+
+/* Cada nombre de la lista "¿quién eres?" */
+.hrr-name-button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: left;
+  border: 2px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.hrr-name-button:hover,
+.hrr-name-button:focus-visible {
+  border-color: #198754;
+  background-color: rgba(25, 135, 84, 0.08);
+}
+
+.hrr-name-button img {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* El botón grande de "ya he pagado" */
+.hrr-giant-button {
+  width: 100%;
+  padding: 1.5rem 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 1rem;
+  line-height: 1.2;
+}
+
+.hrr-simple-view .hrr-big-figure {
+  font-size: clamp(2.5rem, 12vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hrr-simple-view .hrr-guide-text {
+  font-size: 1.15rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hrr-fade-in,
+  .hrr-draw-result li,
+  .hrr-status-dot.hrr-is-unpaid,
+  .hrr-draw-drum.hrr-is-spinning {
+    animation: none !important;
+  }
+
+  .hrr-pot-progress .progress-bar {
+    transition: none;
   }
 }
