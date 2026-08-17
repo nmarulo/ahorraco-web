@@ -45,6 +45,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@app/modules/pools/pages/my-payment/my-payment').then((m) => m.MyPayment)
       },
+      {
+        path: 'pools/:poolId/payments',
+        title: 'Ahorraco · Pagos del mes',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/month-payments/month-payments').then(
+            (m) => m.MonthPayments
+          )
+      },
       { path: '', pathMatch: 'full', redirectTo: 'create-pool' }
     ]
   },

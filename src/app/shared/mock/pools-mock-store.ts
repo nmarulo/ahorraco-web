@@ -124,6 +124,32 @@ export class PoolsMockStore {
     this.writeAll(pools);
   }
 
+  /**
+   * El organizador da por recibida la cuota de alguien. Da el pago también por
+   * marcado: si él ha visto el ingreso, está pagado, lo dijera o no el
+   * participante.
+   */
+  setPaymentConfirmed(poolId: string, participantId: string, month: string): void {
+    const pools = this.readAll();
+    const pool = pools.find((candidate) => candidate.poolId === poolId);
+    if (!pool) {
+      return;
+    }
+
+    const payment = pool.payments.find(
+      (candidate) => candidate.participantId === participantId && candidate.month === month
+    );
+
+    if (payment) {
+      payment.marked = true;
+      payment.confirmed = true;
+    } else {
+      pool.payments.push({ participantId, month, marked: true, confirmed: true });
+    }
+
+    this.writeAll(pools);
+  }
+
   /** Guarda el orden sorteado. Solo se hace una vez por porra. */
   saveDraw(poolId: string, turns: StoredTurn[], organizerParticipantId?: string): void {
     const pools = this.readAll();

@@ -92,6 +92,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.hrr-pot-progress {
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.hrr-pot-progress .progress-bar {
+  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+
 /* ------------------------------------------------------------------ *
  * 4. Estados de pago
  * ------------------------------------------------------------------ */

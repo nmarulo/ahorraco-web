@@ -1,0 +1,251 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h1 class="mb-0 fs-3">Pagos del mes</h1>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    @if (pool(); as currentPool) {
+      @if (!drawn()) {
+        <div class="alert alert-warning" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Todavía no se ha sorteado el orden, así que aún no hay cuotas que cobrar.
+          <a [routerLink]="['/pools', poolId(), 'draw']" class="alert-link ms-1">Ir al sorteo</a>
+        </div>
+      } @else if (openMonths().length === 0) {
+        <div class="alert alert-secondary" role="alert">
+          <i class="bi bi-hourglass-split me-2"></i>
+          La porra empieza en
+          <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>. Todavía no hay
+          ninguna cuota que cobrar.
+        </div>
+      } @else {
+        <div class="row">
+          <div class="col-lg-4">
+            <!--begin::Bote del mes-->
+            <div class="card card-success card-outline hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-piggy-bank me-1"></i>
+                  Bote de {{ toDate(selectedMonth()) | date: 'MMMM' }}
+                </h2>
+              </div>
+              <div class="card-body text-center">
+                <p class="hrr-pot-amount text-success mb-0">
+                  {{ potCollected() | number: '1.0-2' }} €
+                </p>
+                <p class="text-secondary mb-3">
+                  de {{ potTotal() | number: '1.0-2' }} € ·
+                  {{ confirmedCount() }} de {{ payments().length }} pagos
+                </p>
+
+                <div class="progress hrr-pot-progress mb-3">
+                  <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    [style.width.%]="progress()"
+                    [attr.aria-valuenow]="progress()"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {{ progress() }} %
+                  </div>
+                </div>
+
+                @if (beneficiary(); as winner) {
+                  <div class="d-flex align-items-center justify-content-center gap-2 text-secondary fs-7">
+                    <span class="hrr-turn-chip hrr-turn-chip-sm">{{ initials(winner.fullName) }}</span>
+                    Se entrega a {{ winner.fullName }}
+                  </div>
+                }
+              </div>
+            </div>
+            <!--end::Bote del mes-->
+
+            @if (potComplete()) {
+              <div class="alert alert-success hrr-fade-in" role="alert">
+                <h2 class="alert-heading fs-5">
+                  <i class="bi bi-check-circle-fill me-2"></i>Bote completo
+                </h2>
+                <p class="mb-0">
+                  Ya están los {{ potTotal() | number: '1.0-2' }} €. Entrégaselos a
+                  {{ beneficiary()?.fullName }} fuera de la app, como siempre (Bizum, transferencia o
+                  en mano).
+                </p>
+              </div>
+            }
+
+            <!--begin::Leyenda-->
+            <div class="card hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-info-circle me-1"></i> Qué significa cada estado
+                </h2>
+              </div>
+              <div class="card-body">
+                <p class="mb-2">
+                  <span class="hrr-status-dot hrr-is-marked"></span>
+                  <strong>Dice que pagó</strong>
+                </p>
+                <p class="text-secondary fs-7">
+                  El participante ha marcado su cuota, pero tú todavía no has visto el ingreso.
+                </p>
+
+                <p class="mb-2">
+                  <span class="hrr-status-dot hrr-is-confirmed"></span>
+                  <strong>Confirmado</strong>
+                </p>
+                <p class="text-secondary fs-7">
+                  Has comprobado el ingreso y lo has dado por bueno. Es lo único que cuenta para el
+                  bote.
+                </p>
+
+                <p class="mb-2">
+                  <span class="hrr-status-dot hrr-is-unpaid"></span>
+                  <strong>Sin pagar</strong>
+                </p>
+                <p class="text-secondary fs-7 mb-3">Ni ha pagado ni lo ha marcado.</p>
+
+                <div class="alert alert-secondary fs-7 mb-0" role="alert">
+                  <i class="bi bi-person-gear me-1"></i>
+                  Como organizador puedes <strong>marcar el pago por cualquiera</strong>. Es lo normal
+                  con quien paga en efectivo o se maneja mal con la app.
+                </div>
+              </div>
+            </div>
+            <!--end::Leyenda-->
+          </div>
+
+          <div class="col-lg-8">
+            <!--begin::Pagos-->
+            <div class="card hrr-fade-in">
+              <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-check2-square me-1"></i>
+                  Pagos de {{ toDate(selectedMonth()) | date: 'MMMM \'de\' y' }}
+                </h2>
+                <div class="d-flex gap-2 align-items-center">
+                  @if (unresolved() > 0) {
+                    <span class="badge text-bg-warning">{{ unresolved() }} por resolver</span>
+                  }
+                  @if (openMonths().length > 1) {
+                    <select
+                      class="form-select form-select-sm w-auto"
+                      aria-label="Mes que se está mirando"
+                      [value]="selectedMonth()"
+                      (change)="selectMonth($any($event.target).value)"
+                    >
+                      @for (turn of openMonths(); track turn.month) {
+                        <option [value]="turn.month">
+                          {{ toDate(turn.month) | date: 'MMMM \'de\' y' }}
+                        </option>
+                      }
+                    </select>
+                  }
+                </div>
+              </div>
+
+              @if (errorMessage(); as message) {
+                <div class="card-body pb-0">
+                  <div class="alert alert-danger mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                  </div>
+                </div>
+              }
+
+              <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Participante</th>
+                      <th class="d-none d-md-table-cell text-end">Cuota</th>
+                      <th>Estado</th>
+                      <th class="text-end">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (payment of payments(); track payment.participantId) {
+                      <tr>
+                        <td>
+                          <span class="hrr-turn-chip hrr-turn-chip-sm me-2">
+                            {{ initials(nameOf(payment.participantId)) }}
+                          </span>
+                          {{ nameOf(payment.participantId) }}
+                        </td>
+                        <td class="d-none d-md-table-cell text-end">
+                          {{ monthlyFee() | number: '1.0-2' }} €
+                        </td>
+                        <td>
+                          @if (payment.confirmed) {
+                            <span class="hrr-status-dot hrr-is-confirmed"></span>
+                            <span class="badge text-bg-success">Confirmado</span>
+                          } @else if (payment.marked) {
+                            <span class="hrr-status-dot hrr-is-marked"></span>
+                            <span class="badge text-bg-warning">Dice que pagó</span>
+                          } @else {
+                            <span class="hrr-status-dot hrr-is-unpaid"></span>
+                            <span class="badge text-bg-danger">Sin pagar</span>
+                          }
+                        </td>
+                        <td class="text-end">
+                          @if (payment.confirmed) {
+                            <span class="text-success fs-7">
+                              <i class="bi bi-check-lg"></i> Recibido
+                            </span>
+                          } @else {
+                            <button
+                              type="button"
+                              class="btn btn-sm"
+                              [class.btn-success]="payment.marked"
+                              [class.btn-outline-success]="!payment.marked"
+                              [disabled]="confirming() !== null"
+                              (click)="confirm(payment.participantId)"
+                            >
+                              @if (confirming() === payment.participantId) {
+                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                              } @else {
+                                <i class="bi bi-check-lg me-1"></i>
+                              }
+                              @if (payment.marked) {
+                                Dar por recibido
+                              } @else {
+                                <!-- Neutro a propósito: el prototipo dice «Marcar por ella»,
+                                     que falla con medio grupo. -->
+                                Marcar su pago
+                              }
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="card-footer bg-transparent">
+                <span class="text-secondary fs-7">
+                  @if (beneficiary(); as winner) {
+                    {{ winner.fullName }} no aparece: quien cobra este mes no paga cuota.
+                  }
+                </span>
+              </div>
+            </div>
+            <!--end::Pagos-->
+          </div>
+        </div>
+      }
+    } @else if (loading()) {
+      <p class="text-secondary" role="status">
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        Cargando los pagos…
+      </p>
+    } @else {
+      <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage() }}
+        <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
+      </div>
+    }
+  </div>
+</div>
