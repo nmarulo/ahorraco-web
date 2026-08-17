@@ -5,6 +5,7 @@
  * Índice
  *   1. Marca
  *   2. Turnos
+ *   3. El bote del mes
  *   5. Sorteo
  *   6. Utilidades varias
  */
@@ -52,6 +53,12 @@
   font-size: 0.8rem;
 }
 
+/* Meses ya cobrados */
+.hrr-turn-chip.hrr-is-collected {
+  background-color: rgba(25, 135, 84, 0.15);
+  color: #198754;
+}
+
 /* Mes en curso */
 .hrr-turn-chip.hrr-is-current {
   background-color: #198754;
@@ -66,6 +73,24 @@
   border: 2px dashed var(--bs-border-color);
   color: var(--bs-secondary-color);
 }
+
+/* Fila de la tabla del orden correspondiente al mes en curso */
+.hrr-current-month-row {
+  background-color: rgba(25, 135, 84, 0.07) !important;
+  box-shadow: inset 3px 0 0 0 #198754;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. El bote del mes
+ * ------------------------------------------------------------------ */
+
+.hrr-pot-amount {
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* ------------------------------------------------------------------ *
  * 5. Sorteo

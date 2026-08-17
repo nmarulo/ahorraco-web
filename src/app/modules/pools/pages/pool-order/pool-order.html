@@ -1,0 +1,209 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h1 class="mb-0 fs-3">Orden de cobro</h1>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    @if (pool(); as currentPool) {
+      @if (!drawn()) {
+        <div class="alert alert-warning" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Todavía no se ha sorteado el orden, así que aún no se sabe quién cobra cada mes.
+          <a [routerLink]="['/pools', poolId(), 'draw']" class="alert-link ms-1">Ir al sorteo</a>
+        </div>
+      } @else {
+        <div class="row">
+          <div class="col-lg-4">
+            <!--begin::Cobra este mes-->
+            <div class="card card-success card-outline hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0"><i class="bi bi-gift me-1"></i> Cobra este mes</h2>
+              </div>
+              <div class="card-body text-center">
+                @if (beneficiary(); as winner) {
+                  <span class="hrr-turn-chip hrr-is-current mx-auto mb-3">
+                    {{ initials(winner.fullName) }}
+                  </span>
+                  <h3 class="fs-4 mb-1">{{ winner.fullName }}</h3>
+                  <p class="text-secondary mb-3">
+                    Turno {{ winner.position }} · {{ toDate(winner.month) | date: 'MMMM \'de\' y' }}
+                  </p>
+                  <p class="hrr-pot-amount text-success mb-0">
+                    {{ monthlyPot() | number: '1.0-2' }} €
+                  </p>
+                  <p class="text-secondary fs-7 mb-0">Bote del mes</p>
+                } @else if (notStarted()) {
+                  <p class="fs-1 mb-2 text-secondary"><i class="bi bi-hourglass-split"></i></p>
+                  <p class="mb-0">
+                    La porra todavía no ha empezado. El primer turno es
+                    <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>.
+                  </p>
+                } @else if (finished()) {
+                  <p class="fs-1 mb-2 text-success"><i class="bi bi-flag-fill"></i></p>
+                  <p class="mb-0">La porra ya ha terminado: han cobrado todos.</p>
+                }
+              </div>
+            </div>
+            <!--end::Cobra este mes-->
+
+            <!--begin::Avance de la porra-->
+            <div class="card hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-bar-chart me-1"></i> Avance de la porra
+                </h2>
+              </div>
+              <div class="card-body">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-secondary fs-7">
+                    {{ closedCount() }} de {{ turns().length }} meses cerrados
+                  </span>
+                  <span class="fw-semibold">{{ progress() }} %</span>
+                </div>
+                <div class="progress mb-3" style="height: 0.6rem">
+                  <div
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    [style.width.%]="progress()"
+                    [attr.aria-valuenow]="progress()"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+                <dl class="row mb-0 fs-7">
+                  <dt class="col-7 text-secondary fw-normal">Repartido hasta ahora</dt>
+                  <dd class="col-5 text-end mb-1">{{ distributed() | number: '1.0-2' }} €</dd>
+                  <dt class="col-7 text-secondary fw-normal">Queda por repartir</dt>
+                  <dd class="col-5 text-end mb-0">{{ pendingAmount() | number: '1.0-2' }} €</dd>
+                </dl>
+              </div>
+            </div>
+            <!--end::Avance de la porra-->
+          </div>
+
+          <div class="col-lg-8">
+            <!--begin::Orden completo-->
+            <div class="card hrr-fade-in">
+              <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-list-ol me-1"></i> Orden de cobro completo
+                </h2>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Filtrar turnos">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [class.active]="filter() === 'ALL'"
+                    (click)="filterBy('ALL')"
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [class.active]="filter() === 'COLLECTED'"
+                    (click)="filterBy('COLLECTED')"
+                  >
+                    Cobrados
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [class.active]="filter() === 'PENDING'"
+                    (click)="filterBy('PENDING')"
+                  >
+                    Pendientes
+                  </button>
+                </div>
+              </div>
+
+              <div class="card-body p-0">
+                @if (visibleTurns().length === 0) {
+                  <p class="text-secondary text-center py-4 mb-0">
+                    No hay turnos que enseñar con este filtro.
+                  </p>
+                } @else {
+                  <table class="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th style="width: 5rem">Turno</th>
+                        <th>Participante</th>
+                        <th class="d-none d-md-table-cell">Mes</th>
+                        <th class="d-none d-lg-table-cell text-end">Bote</th>
+                        <th class="text-end">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (turn of visibleTurns(); track turn.participantId) {
+                        <tr [class.hrr-current-month-row]="stateOf(turn) === 'CURRENT'">
+                          <td>
+                            <span
+                              class="hrr-turn-chip hrr-turn-chip-sm"
+                              [class.hrr-is-collected]="stateOf(turn) === 'COLLECTED'"
+                              [class.hrr-is-current]="stateOf(turn) === 'CURRENT'"
+                              [class.hrr-is-pending]="stateOf(turn) === 'PENDING'"
+                            >
+                              {{ turn.position }}
+                            </span>
+                          </td>
+                          <td>
+                            {{ turn.fullName }}
+                            @if (turn.pinned) {
+                              <span class="badge text-bg-secondary ms-1">
+                                <i class="bi bi-pin-angle-fill me-1"></i>Fijado
+                              </span>
+                            }
+                          </td>
+                          <td class="d-none d-md-table-cell">
+                            {{ toDate(turn.month) | date: 'MMMM \'de\' y' }}
+                          </td>
+                          <td class="d-none d-lg-table-cell text-end">
+                            {{ monthlyPot() | number: '1.0-2' }} €
+                          </td>
+                          <td class="text-end">
+                            @switch (stateOf(turn)) {
+                              @case ('COLLECTED') {
+                                <span class="badge text-bg-success">Cobrado</span>
+                              }
+                              @case ('CURRENT') {
+                                <span class="badge text-bg-primary">En curso</span>
+                              }
+                              @default {
+                                <span class="badge text-bg-secondary">Pendiente</span>
+                              }
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                }
+              </div>
+
+              <div class="card-footer bg-transparent">
+                <span class="text-secondary fs-7">
+                  <i class="bi bi-info-circle me-1"></i>
+                  El orden se sorteó una sola vez y no se toca. Ceder el puesto o pedir un cambio con
+                  otro participante queda fuera de la v1.
+                </span>
+              </div>
+            </div>
+            <!--end::Orden completo-->
+          </div>
+        </div>
+      }
+    } @else if (loading()) {
+      <p class="text-secondary" role="status">
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        Cargando el orden…
+      </p>
+    } @else {
+      <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage() }}
+        <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
+      </div>
+    }
+  </div>
+</div>

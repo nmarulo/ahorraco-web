@@ -33,6 +33,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@app/modules/pools/pages/draw-order/draw-order').then((m) => m.DrawOrder)
       },
+      {
+        path: 'pools/:poolId/order',
+        title: 'Ahorraco · Orden de cobro',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/pool-order/pool-order').then((m) => m.PoolOrder)
+      },
       { path: '', pathMatch: 'full', redirectTo: 'create-pool' }
     ]
   },

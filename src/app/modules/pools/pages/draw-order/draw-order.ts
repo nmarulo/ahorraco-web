@@ -152,9 +152,9 @@ export class DrawOrder implements OnInit {
     });
 
     this.pools.getOrder(this.poolId()).subscribe({
-      next: (turns) => {
-        this.turns.set(turns);
-        this.revealed.set(turns);
+      next: (order) => {
+        this.turns.set(order.turns);
+        this.revealed.set(order.turns);
         this.loading.set(false);
       },
       error: (error: Error) => {

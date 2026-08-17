@@ -4,6 +4,7 @@ import { Observable, delay, of, throwError } from 'rxjs';
 import { CreateDrawReq } from '@app/models/create-draw-req';
 import { CreatePoolReq } from '@app/models/create-pool-req';
 import { CreatePoolRes } from '@app/models/create-pool-res';
+import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolInvitationRes } from '@app/models/get-pool-invitation-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { JoinPoolReq } from '@app/models/join-pool-req';
@@ -164,21 +165,26 @@ export class PoolsService {
   }
 
   /**
-   * Orden de cobro ya sorteado. Vacío si todavía no se ha hecho el sorteo.
+   * Orden de cobro, con el mes en curso según el reloj del servidor. La lista
+   * de turnos va vacía si todavía no se ha hecho el sorteo.
    *
-   * Es el endpoint de I-04; I-03 lo usa para saber si el sorteo ya está hecho y
-   * no dejar repetirlo.
+   * Es el endpoint de I-04; I-03 lo usa además para saber si el sorteo ya está
+   * hecho y no dejar repetirlo.
    */
-  getOrder(poolId: string): Observable<TurnRes[]> {
+  getOrder(poolId: string): Observable<GetOrderRes> {
     // TODO: reemplazar con llamada real a la API
-    //   return this.http.get<TurnRes[]>(
+    //   return this.http.get<GetOrderRes>(
     //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/order`);
     const pool = this.store.findById(poolId);
     if (!pool) {
       return this.simulateNotFound('No existe ninguna porra con ese identificador.');
     }
 
-    return this.simulate(this.toTurnsRes(pool));
+    return this.simulate({
+      // El mes lo pone el servidor; aquí lo suple el reloj del navegador.
+      currentMonth: this.currentMonth(),
+      turns: this.toTurnsRes(pool)
+    });
   }
 
   /**
@@ -300,6 +306,13 @@ export class PoolsService {
     const date = new Date(year, month - 1 + offset, 1);
 
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  /** Mes de hoy en `AAAA-MM`. En la API real lo pone el reloj del servidor. */
+  private currentMonth(): string {
+    const today = new Date();
+
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   }
 
   /** Envuelve una respuesta simulada con la latencia de red de mentira. */

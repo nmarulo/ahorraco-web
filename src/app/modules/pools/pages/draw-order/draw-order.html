@@ -40,10 +40,15 @@
               </div>
 
               @if (alreadyDrawn()) {
-                <div class="alert alert-success mb-0" role="alert">
+                <div class="alert alert-success" role="alert">
                   <i class="bi bi-check-circle-fill me-2"></i>
                   El sorteo ya está hecho y el orden no se toca. Ceder el puesto o pedir un cambio
                   con otro participante queda <strong>fuera de la v1</strong>.
+                </div>
+                <div class="d-grid">
+                  <a [routerLink]="['/pools', poolId(), 'order']" class="btn btn-primary">
+                    <i class="bi bi-list-ol me-1"></i> Ver el orden de cobro
+                  </a>
                 </div>
               } @else if (!everyoneJoined()) {
                 <div class="alert alert-warning mb-0" role="alert">
