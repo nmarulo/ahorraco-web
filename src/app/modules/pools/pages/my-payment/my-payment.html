@@ -1,0 +1,311 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h1 class="mb-0 fs-3">Mi pago del mes</h1>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-xl-7 col-lg-9">
+        @if (pool(); as currentPool) {
+          @if (!drawn()) {
+            <div class="alert alert-warning" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              Todavía no se ha sorteado el orden, así que aún no hay cuotas que pagar.
+              <a [routerLink]="['/pools', poolId(), 'order']" class="alert-link ms-1">Ver el orden</a>
+            </div>
+          } @else if (identity(); as me) {
+            <!--begin::Identidad sin login-->
+            <div class="card hrr-fade-in">
+              <div class="card-body d-flex flex-wrap align-items-center gap-3">
+                <span class="hrr-turn-chip">{{ initials(me.fullName) }}</span>
+                <div class="flex-grow-1">
+                  <p class="text-secondary fs-7 mb-0">Estás marcando el pago como</p>
+                  <p class="fw-semibold mb-0">{{ me.fullName }}</p>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="forgetIdentity()">
+                  <i class="bi bi-person-check me-1"></i> No soy yo
+                </button>
+              </div>
+            </div>
+            <!--end::Identidad sin login-->
+
+            <!--begin::Cuota del mes-->
+            <div
+              class="card card-primary card-outline hrr-payment-card hrr-fade-in"
+              [class.hrr-is-paid]="alreadyMarked()"
+            >
+              @if (notStarted()) {
+                <div class="card-body text-center">
+                  <p class="fs-1 mb-2 text-secondary"><i class="bi bi-hourglass-split"></i></p>
+                  <p class="mb-0">
+                    La porra empieza en
+                    <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>. Todavía no
+                    hay ninguna cuota que pagar.
+                  </p>
+                </div>
+              } @else if (finished()) {
+                <div class="card-body text-center">
+                  <p class="fs-1 mb-2 text-success"><i class="bi bi-flag-fill"></i></p>
+                  <p class="mb-0">La porra ha terminado. No quedan cuotas pendientes.</p>
+                </div>
+              } @else if (iCollectThisMonth()) {
+                <div class="card-body text-center">
+                  <p class="fs-1 mb-2 text-success"><i class="bi bi-gift-fill"></i></p>
+                  <h2 class="fs-5 mb-2">Este mes cobras tú</h2>
+                  <p class="text-secondary mb-0">
+                    En {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }} te toca recibir el bote, así
+                    que no pagas cuota. Los demás la pagan al organizador, que te lo entregará fuera de
+                    la app.
+                  </p>
+                </div>
+              } @else {
+                <div class="card-header text-center border-0 pb-0">
+                  <p class="text-secondary text-uppercase fs-7 mb-1">
+                    Tu cuota de {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }}
+                  </p>
+                  <p class="hrr-pot-amount mb-0">{{ currentPool.monthlyFee | number: '1.0-2' }} €</p>
+                </div>
+
+                <div class="card-body text-center">
+                  @if (currentTurn(); as turn) {
+                    <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
+                      <span class="hrr-turn-chip hrr-is-current">{{ initials(turn.fullName) }}</span>
+                      <div class="text-start">
+                        <p class="text-secondary fs-7 mb-0">Este mes cobra</p>
+                        <p class="fw-semibold mb-0">{{ turn.fullName }}</p>
+                      </div>
+                    </div>
+                  }
+
+                  @if (alreadyMarked()) {
+                    <!--begin::Ya marcado-->
+                    <div class="alert alert-success" role="alert">
+                      <h2 class="alert-heading fs-5">
+                        <i class="bi bi-check-circle-fill me-2"></i>Pago marcado
+                      </h2>
+                      <p class="mb-0">
+                        Has dicho que ya has pagado. Falta que el organizador lo dé por recibido cuando
+                        vea el ingreso.
+                      </p>
+                    </div>
+
+                    <div class="row text-center">
+                      <div class="col-6 border-end">
+                        <p class="text-secondary fs-7 text-uppercase mb-1">Marcado</p>
+                        <p class="fw-semibold mb-0">
+                          <span class="hrr-status-dot hrr-is-marked"></span> Sí
+                        </p>
+                      </div>
+                      <div class="col-6">
+                        <p class="text-secondary fs-7 text-uppercase mb-1">Confirmación</p>
+                        <p class="fw-semibold text-secondary mb-0">Pendiente</p>
+                      </div>
+                    </div>
+                    <!--end::Ya marcado-->
+                  } @else {
+                    <!--begin::Sin marcar-->
+                    <div class="alert alert-warning" role="alert">
+                      <i class="bi bi-clock-history me-2"></i>
+                      La cuota vence <strong>{{ dueDayLabel() }}</strong>.
+                    </div>
+
+                    <div class="text-start bg-body-secondary rounded p-3 mb-4">
+                      <p class="fw-semibold mb-2"><i class="bi bi-phone me-1"></i> Cómo pagar</p>
+                      <p class="text-secondary fs-7 mb-0">
+                        El pago se hace <strong>fuera de Ahorraco</strong>: Bizum, transferencia o
+                        efectivo al organizador. Cuando lo hayas hecho, vuelve aquí y márcalo.
+                      </p>
+                      @if (currentPool.notes) {
+                        <p class="fs-7 mt-2 mb-0">
+                          <i class="bi bi-sticky me-1"></i> {{ currentPool.notes }}
+                        </p>
+                      }
+                    </div>
+
+                    @if (errorMessage(); as message) {
+                      <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                      </div>
+                    }
+
+                    <div class="d-grid">
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-lg"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmPaymentModal"
+                        [disabled]="sending()"
+                      >
+                        @if (sending()) {
+                          <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                          Marcando…
+                        } @else {
+                          <i class="bi bi-check2-circle me-1"></i> Ya he pagado mi cuota
+                        }
+                      </button>
+                    </div>
+                    <!--end::Sin marcar-->
+                  }
+                </div>
+              }
+            </div>
+            <!--end::Cuota del mes-->
+
+            <!--begin::Mis cuotas-->
+            @if (pastAndCurrentTurns().length > 0) {
+              <div class="card hrr-fade-in">
+                <div class="card-header">
+                  <h2 class="card-title fs-5 mb-0">
+                    <i class="bi bi-clock-history me-1"></i> Tus cuotas de esta porra
+                  </h2>
+                </div>
+                <div class="card-body p-0">
+                  <table class="table table-sm align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Mes</th>
+                        <th class="d-none d-md-table-cell">Cobró</th>
+                        <th class="text-end">Tu cuota</th>
+                        <th class="text-end">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (turn of pastAndCurrentTurns(); track turn.month) {
+                        <tr [class.hrr-current-month-row]="turn.month === currentMonth()">
+                          <td>{{ toDate(turn.month) | date: 'MMMM \'de\' y' }}</td>
+                          <td class="d-none d-md-table-cell text-secondary">
+                            @if (turn.participantId === me.participantId) {
+                              Tú
+                            } @else {
+                              {{ collectorOf(turn.month) }}
+                            }
+                          </td>
+                          <td class="text-end">
+                            @if (turn.participantId === me.participantId) {
+                              —
+                            } @else {
+                              {{ currentPool.monthlyFee | number: '1.0-2' }} €
+                            }
+                          </td>
+                          <td class="text-end">
+                            @switch (paymentStateOf(turn.month)) {
+                              @case ('COLLECTED') {
+                                @if (turn.month === currentMonth()) {
+                                  <span class="badge text-bg-primary">Cobras el bote</span>
+                                } @else {
+                                  <span class="badge text-bg-success">Cobraste el bote</span>
+                                }
+                              }
+                              @case ('CONFIRMED') {
+                                <span class="badge text-bg-success">Confirmado</span>
+                              }
+                              @case ('MARKED') {
+                                <span class="badge text-bg-warning">Marcado</span>
+                              }
+                              @default {
+                                <span class="badge text-bg-danger">Sin pagar</span>
+                              }
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+            <!--end::Mis cuotas-->
+
+            <!--begin::Confirmar el pago-->
+            <div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h2 class="modal-title fs-5">
+                      <i class="bi bi-cash-coin me-2"></i>Confirmar que has pagado
+                    </h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body">
+                    <p>
+                      Vas a marcar que ya has pagado tu cuota de
+                      <strong>{{ currentPool.monthlyFee | number: '1.0-2' }} €</strong> de
+                      {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }}.
+                    </p>
+                    <div class="alert alert-info mb-0" role="alert">
+                      <i class="bi bi-info-circle-fill me-2"></i>
+                      Esto <strong>no envía dinero</strong>. Solo avisa al organizador de que puede
+                      buscar tu ingreso y confirmarlo.
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                      Todavía no
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      data-bs-dismiss="modal"
+                      (click)="markPaid()"
+                    >
+                      <i class="bi bi-check2 me-1"></i> Sí, ya he pagado
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--end::Confirmar el pago-->
+          } @else {
+            <!--begin::Elegir quién eres-->
+            <div class="card hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-person-check me-1"></i> ¿Quién eres?
+                </h2>
+              </div>
+              <div class="card-body pb-0">
+                <p class="text-secondary fs-7 mb-0">
+                  No hay contraseñas: elige tu nombre en la lista del grupo. Quedará recordado en este
+                  navegador hasta que pulses «No soy yo».
+                </p>
+              </div>
+              <div class="card-body p-0 pt-3">
+                <ul class="list-group list-group-flush">
+                  @for (person of participants(); track person.participantId) {
+                    <li class="list-group-item p-0">
+                      <button
+                        type="button"
+                        class="btn w-100 text-start d-flex align-items-center gap-3 py-2 px-3"
+                        (click)="chooseIdentity(person)"
+                      >
+                        <span class="hrr-turn-chip hrr-turn-chip-sm">
+                          {{ initials(person.fullName) }}
+                        </span>
+                        <span class="flex-grow-1">{{ person.fullName }}</span>
+                        <i class="bi bi-chevron-right text-secondary"></i>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+            <!--end::Elegir quién eres-->
+          }
+        } @else if (loading()) {
+          <p class="text-secondary" role="status">
+            <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            Cargando tu cuota…
+          </p>
+        } @else {
+          <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ errorMessage() }}
+            <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

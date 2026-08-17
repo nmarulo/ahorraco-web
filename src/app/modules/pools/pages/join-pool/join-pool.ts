@@ -1,15 +1,17 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 import { GetPoolInvitationRes } from '@app/models/get-pool-invitation-res';
 import { JoinPoolReq } from '@app/models/join-pool-req';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { ParticipantSession } from '@app/services/session/participant-session.service';
 
 @Component({
   selector: 'app-join-pool',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './join-pool.html',
   styleUrl: './join-pool.css'
 })
@@ -21,11 +23,16 @@ export class JoinPool implements OnInit {
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
+  private readonly session = inject(ParticipantSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly invitationToken = input.required<string>();
 
   protected readonly pool = signal<GetPoolInvitationRes | null>(null);
+
+  /** Se rellena al unirse, para poder enlazar a la porra ya dentro. */
+  protected readonly poolId = signal('');
+
   protected readonly loading = signal(true);
   protected readonly sending = signal(false);
   protected readonly joined = signal(false);
@@ -85,7 +92,19 @@ export class JoinPool implements OnInit {
     this.errorMessage.set(null);
 
     this.pools.joinPool(this.invitationToken(), this.buildRequest()).subscribe({
-      next: () => {
+      next: (response) => {
+        // Quien se une desde este navegador queda identificado sin tener que
+        // elegirse el nombre de la lista después.
+        const currentPool = this.pool();
+        if (currentPool) {
+          this.session.save(currentPool.poolId, {
+            participantId: response.participantId,
+            fullName: this.form.getRawValue().fullName.trim(),
+            participantToken: response.participantToken
+          });
+          this.poolId.set(currentPool.poolId);
+        }
+
         this.joined.set(true);
         this.sending.set(false);
       },

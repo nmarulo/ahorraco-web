@@ -10,6 +10,7 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { JoinPoolReq } from '@app/models/join-pool-req';
 import { JoinPoolRes } from '@app/models/join-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
+import { PaymentRes } from '@app/models/payment-res';
 import { TurnRes } from '@app/models/turn-res';
 import { PoolsMockStore, StoredPool, StoredTurn } from '@app/shared/mock/pools-mock-store';
 
@@ -60,7 +61,10 @@ export class PoolsService {
       monthlyFee: request.monthlyFee,
       numParticipants: request.numParticipants,
       startDate: request.startDate,
+      paymentDueDay: request.paymentDueDay,
+      ...(request.notes ? { notes: request.notes } : {}),
       participants: [],
+      payments: [],
       turns: []
     };
     this.store.savePool(pool);
@@ -93,6 +97,8 @@ export class PoolsService {
       monthlyFee: pool.monthlyFee,
       numParticipants: pool.numParticipants,
       startDate: pool.startDate,
+      paymentDueDay: pool.paymentDueDay,
+      ...(pool.notes ? { notes: pool.notes } : {}),
       managementCode: pool.managementCode,
       invitationToken: pool.invitationToken
     });
@@ -214,6 +220,49 @@ export class PoolsService {
     this.store.saveDraw(poolId, turns, request.organizerParticipantId);
 
     return this.simulate(this.toTurnsRes({ ...pool, turns }));
+  }
+
+  /**
+   * Las cuotas de un participante en toda la porra.
+   *
+   * OJO: `api-endpoints.md` solo define el listado del organizador
+   * (`GET /pools/{poolId}/payments?month=…`), que enseña a todo el grupo. Esto
+   * es la vista propia de cada uno, y falta recogerla allí.
+   */
+  getMyPayments(poolId: string, participantId: string): Observable<PaymentRes[]> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.get<PaymentRes[]>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/payments/mine`);
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    return this.simulate(
+      pool.payments.filter((payment) => payment.participantId === participantId).map((payment) => ({ ...payment }))
+    );
+  }
+
+  /**
+   * El participante dice que ya ha pagado su cuota del mes.
+   *
+   * No mueve dinero: solo deja constancia para que el organizador busque el
+   * ingreso y lo confirme.
+   */
+  markPaid(poolId: string, month: string, participantId: string): Observable<PaymentRes> {
+    // TODO: reemplazar con llamada real a la API — el participante irá
+    // identificado por su `participantToken`, no por `participantId` en el
+    // cuerpo (ver `CLAUDE.md` §12):
+    //   return this.http.post<PaymentRes>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/payments/${month}/mark-paid`, {});
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    this.store.setPaymentMarked(poolId, participantId, month, true);
+
+    return this.simulate({ participantId, month, marked: true, confirmed: false });
   }
 
   /**

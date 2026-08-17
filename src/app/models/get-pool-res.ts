@@ -16,6 +16,12 @@ export interface GetPoolRes {
   /** Mes de inicio en formato `AAAA-MM`. */
   readonly startDate: string;
 
+  /** Cuándo vence la cuota cada mes; el mismo código que en el alta. */
+  readonly paymentDueDay: string;
+
+  /** Nota que dejó el organizador para el grupo, si la puso. */
+  readonly notes?: string;
+
   readonly managementCode: string;
 
   /** Token que forma el enlace de invitación que reparte el organizador. */

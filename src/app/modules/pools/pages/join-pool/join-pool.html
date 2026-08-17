@@ -47,10 +47,22 @@
         <div class="card-body text-center">
           <p class="fs-1 mb-2 text-success"><i class="bi bi-check-circle-fill"></i></p>
           <h2 class="fs-5 mb-2">Ya estás dentro</h2>
-          <p class="text-secondary mb-0">
+          <p class="text-secondary mb-3">
             El organizador te verá en la lista. Cuando estéis los
             {{ currentPool.numParticipants }}, hará el sorteo del orden de cobro y podrás ver qué mes te
             toca.
+          </p>
+          <div class="d-grid gap-2">
+            <a [routerLink]="['/pools', poolId(), 'order']" class="btn btn-primary">
+              <i class="bi bi-list-ol me-1"></i> Ver el orden de cobro
+            </a>
+            <a [routerLink]="['/pools', poolId(), 'my-payment']" class="btn btn-outline-secondary">
+              <i class="bi bi-cash-coin me-1"></i> Mi pago del mes
+            </a>
+          </div>
+          <p class="text-secondary fs-7 mt-3 mb-0">
+            <i class="bi bi-bookmark-star me-1"></i>
+            Guarda esta página en favoritos: es tu entrada a la porra, sin contraseñas.
           </p>
         </div>
       </div>

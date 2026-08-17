@@ -6,6 +6,7 @@
  *   1. Marca
  *   2. Turnos
  *   3. El bote del mes
+ *   4. Estados de pago
  *   5. Sorteo
  *   6. Utilidades varias
  */
@@ -91,6 +92,56 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ------------------------------------------------------------------ *
+ * 4. Estados de pago
+ * ------------------------------------------------------------------ */
+
+.hrr-status-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.hrr-status-dot.hrr-is-confirmed {
+  background-color: #198754;
+}
+
+.hrr-status-dot.hrr-is-marked {
+  background-color: #ffc107;
+}
+
+.hrr-status-dot.hrr-is-unpaid {
+  background-color: #dc3545;
+  animation: hrr-pulse 2s ease-in-out infinite;
+}
+
+@keyframes hrr-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(220, 53, 69, 0);
+  }
+}
+
+/* Tarjeta grande de "he pagado / no he pagado" */
+.hrr-payment-card {
+  border: 2px solid var(--bs-border-color);
+  border-radius: 0.75rem;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.2s ease;
+}
+
+.hrr-payment-card.hrr-is-paid {
+  border-color: #198754;
+  background-color: rgba(25, 135, 84, 0.06);
+}
 
 /* ------------------------------------------------------------------ *
  * 5. Sorteo
