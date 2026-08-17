@@ -53,6 +53,14 @@ export const routes: Routes = [
             (m) => m.MonthPayments
           )
       },
+      {
+        path: 'pools/:poolId/reminder',
+        title: 'Ahorraco · Recordatorio manual',
+        loadComponent: () =>
+          import('@app/modules/pools/pages/payment-reminder/payment-reminder').then(
+            (m) => m.PaymentReminder
+          )
+      },
       { path: '', pathMatch: 'full', redirectTo: 'create-pool' }
     ]
   },

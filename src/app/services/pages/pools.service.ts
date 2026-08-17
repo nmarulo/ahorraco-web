@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { DOCUMENT, Injectable, inject } from '@angular/core';
 import { Observable, delay, of, throwError } from 'rxjs';
 
 import { CreateDrawReq } from '@app/models/create-draw-req';
@@ -9,6 +9,7 @@ import { GetPoolInvitationRes } from '@app/models/get-pool-invitation-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { JoinPoolReq } from '@app/models/join-pool-req';
 import { JoinPoolRes } from '@app/models/join-pool-res';
+import { GetReminderRes } from '@app/models/get-reminder-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { PaymentRes } from '@app/models/payment-res';
 import { TurnRes } from '@app/models/turn-res';
@@ -44,6 +45,9 @@ export class PoolsService {
   private static readonly MAX_INITIALS = 4;
 
   private readonly store = inject(PoolsMockStore);
+
+  /** Solo para el enlace del recordatorio; la API real usaría su propia base. */
+  private readonly document = inject(DOCUMENT);
 
   /**
    * Da de alta una porra y devuelve su identificador, el código de gestión del
@@ -266,6 +270,82 @@ export class PoolsService {
   }
 
   /**
+   * Las cuotas de un mes, una fila por participante que debe pagar.
+   *
+   * Quien cobra ese mes no aparece: no paga cuota. Los participantes que
+   * todavía no han hecho nada salen con `marked` y `confirmed` a `false`, en
+   * vez de faltar de la lista.
+   */
+  getPayments(poolId: string, month: string): Observable<PaymentRes[]> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.get<PaymentRes[]>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/payments`, {params: {month}});
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    const beneficiaryId = pool.turns.find((turn) => turn.month === month)?.participantId;
+
+    return this.simulate(
+      pool.participants
+        .filter((person) => person.participantId !== beneficiaryId)
+        .map((person) => this.paymentOf(pool, person.participantId, month))
+    );
+  }
+
+  /**
+   * El organizador da por recibida la cuota de alguien, sea suya o de otro.
+   *
+   * Es lo normal con quien paga en efectivo o se maneja mal con la app, así que
+   * vale también para quien no la haya marcado.
+   */
+  confirmReceived(poolId: string, month: string, participantId: string): Observable<PaymentRes> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.post<PaymentRes>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/payments/${month}/confirm-received`,
+    //     {participantId});
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    this.store.setPaymentConfirmed(poolId, participantId, month);
+
+    return this.simulate({ participantId, month, marked: true, confirmed: true });
+  }
+
+  /**
+   * Los trozos del recordatorio del mes, ya redactados.
+   *
+   * **Ahorraco no envía nada**: solo redacta.
+   *
+   * Los redacta todos de una vez: elegir cuáles se pegan es cosa del cliente,
+   * que así responde al instante cuando el organizador toca un interruptor.
+   */
+  getReminder(poolId: string, month: string): Observable<GetReminderRes> {
+    // TODO: reemplazar con llamada real a la API
+    //   return this.http.get<GetReminderRes>(
+    //     `${environment.AHORRACO_REST_API_URL}/pools/${poolId}/reminder`, {params: {month}});
+    const pool = this.store.findById(poolId);
+    if (!pool) {
+      return this.simulateNotFound('No existe ninguna porra con ese identificador.');
+    }
+
+    const beneficiary = this.beneficiaryBlock(pool, month);
+    const origin = this.document.location.origin;
+
+    return this.simulate({
+      month,
+      greeting: `¡Hola! Toca la cuota de ${this.monthName(month)} de la porra «${pool.name}».`,
+      ...(beneficiary ? { beneficiary } : {}),
+      debtors: this.debtorsBlock(pool, month),
+      link: `Podéis marcar vuestro pago aquí:\n${origin}/pools/${pool.poolId}/my-payment`,
+      ...(pool.notes ? { paymentDetails: pool.notes } : {})
+    });
+  }
+
+  /**
    * Compone el código de gestión que se le propone al organizador: las
    * iniciales del nombre de la porra más un sufijo aleatorio.
    *
@@ -291,6 +371,90 @@ export class PoolsService {
     // genera el servidor al crear la porra; esto es solo la sugerencia visible
     // en el formulario.
     return this.randomString(PoolsService.SUFFIX_LENGTH);
+  }
+
+  /** Quién cobra este mes, con su turno y la cuota que toca pagar. */
+  private beneficiaryBlock(pool: StoredPool, month: string): string {
+    const turn = pool.turns.find((candidate) => candidate.month === month);
+    if (!turn) {
+      return '';
+    }
+
+    const name = pool.participants.find(
+      (person) => person.participantId === turn.participantId
+    )?.fullName;
+
+    return (
+      `Este mes cobra ${name} (turno ${turn.position} de ${pool.turns.length}).\n` +
+      `Cuota: ${pool.monthlyFee} € · Vence ${this.dueDayText(pool.paymentDueDay)} de ` +
+      `${this.monthName(month)}.`
+    );
+  }
+
+  /** Quién falta por pagar y a quién le falta la confirmación. */
+  private debtorsBlock(pool: StoredPool, month: string): string {
+    const beneficiaryId = pool.turns.find((turn) => turn.month === month)?.participantId;
+    const owing = pool.participants.filter((person) => person.participantId !== beneficiaryId);
+    const nameOf = (participantId: string): string =>
+      pool.participants.find((person) => person.participantId === participantId)?.fullName ?? '';
+
+    const unpaid = owing
+      .filter((person) => !this.paymentOf(pool, person.participantId, month).marked)
+      .map((person) => nameOf(person.participantId));
+    const unconfirmed = owing
+      .filter((person) => {
+        const payment = this.paymentOf(pool, person.participantId, month);
+        return payment.marked && !payment.confirmed;
+      })
+      .map((person) => nameOf(person.participantId));
+
+    const lines: string[] = [];
+    if (unpaid.length > 0) {
+      lines.push(`Todavía faltan por pagar: ${unpaid.join(', ')}.`);
+    }
+    if (unconfirmed.length > 0) {
+      lines.push(`Pendientes de que confirme el ingreso: ${unconfirmed.join(', ')}.`);
+    }
+    if (lines.length === 0) {
+      lines.push('¡Ya ha pagado todo el mundo! Gracias.');
+    }
+
+    return lines.join('\n');
+  }
+
+  /** «el día 10» / «el último día», para meterlo en una frase. */
+  private dueDayText(paymentDueDay: string): string {
+    switch (paymentDueDay) {
+      case 'DAY_5':
+        return 'el día 5';
+      case 'DAY_15':
+        return 'el día 15';
+      case 'LAST_DAY':
+        return 'el último día';
+      default:
+        return 'el día 10';
+    }
+  }
+
+  /** Nombre del mes en español, a partir de un `AAAA-MM`. */
+  private monthName(month: string): string {
+    const [year, monthNumber] = month.split('-').map(Number);
+
+    return new Date(year, monthNumber - 1, 1).toLocaleDateString('es-ES', { month: 'long' });
+  }
+
+  /** La cuota de alguien en un mes; si no hay registro, va a cero. */
+  private paymentOf(pool: StoredPool, participantId: string, month: string): PaymentRes {
+    const payment = pool.payments.find(
+      (candidate) => candidate.participantId === participantId && candidate.month === month
+    );
+
+    return {
+      participantId,
+      month,
+      marked: payment?.marked ?? false,
+      confirmed: payment?.confirmed ?? false
+    };
   }
 
   /** Pasa un participante del almacén al DTO, sin filtrar nada de más. */

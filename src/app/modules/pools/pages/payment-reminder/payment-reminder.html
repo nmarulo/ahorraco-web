@@ -1,0 +1,180 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <h1 class="mb-0 fs-3">Recordatorio manual</h1>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    @if (pool(); as currentPool) {
+      <div class="alert alert-info d-flex align-items-start gap-3 hrr-fade-in" role="alert">
+        <i class="bi bi-info-circle-fill fs-4"></i>
+        <div>
+          Ahorraco <strong>no envía nada por su cuenta</strong>. Genera el texto, lo copias y lo
+          pegas tú en el WhatsApp del grupo, igual que haces hoy.
+        </div>
+      </div>
+
+      @if (!drawn()) {
+        <div class="alert alert-warning" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          Todavía no se ha sorteado el orden, así que no hay cuotas de las que avisar.
+          <a [routerLink]="['/pools', poolId(), 'draw']" class="alert-link ms-1">Ir al sorteo</a>
+        </div>
+      } @else if (openMonths().length === 0) {
+        <div class="alert alert-secondary" role="alert">
+          <i class="bi bi-hourglass-split me-2"></i>
+          La porra empieza en
+          <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>. Todavía no hay
+          ninguna cuota de la que avisar.
+        </div>
+      } @else {
+        <div class="row">
+          <div class="col-lg-7">
+            <!--begin::Texto-->
+            <div class="card card-primary card-outline hrr-fade-in">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-megaphone me-1"></i> Texto del recordatorio
+                </h2>
+                <span class="badge text-bg-secondary">
+                  {{ toDate(month()) | date: 'MMMM \'de\' y' }}
+                </span>
+              </div>
+              <div class="card-body">
+                <label for="reminderText" class="form-label">
+                  Se genera con los datos del mes
+                </label>
+                <textarea
+                  id="reminderText"
+                  class="form-control hrr-link-box mb-3"
+                  rows="11"
+                  readonly
+                  [value]="text()"
+                ></textarea>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-primary" type="button" (click)="copyText()">
+                    <i class="bi bi-clipboard me-1"></i> Copiar texto
+                  </button>
+                  <a [href]="whatsappLink()" target="_blank" rel="noopener" class="btn btn-success">
+                    <i class="bi bi-whatsapp me-1"></i> Abrir WhatsApp con el texto
+                  </a>
+                </div>
+
+                @if (copied()) {
+                  <p class="text-success fs-7 mt-2 mb-0" role="status">
+                    <i class="bi bi-check2 me-1"></i> Texto copiado al portapapeles.
+                  </p>
+                }
+              </div>
+              <div class="card-footer bg-transparent text-secondary fs-7">
+                <i class="bi bi-hand-index me-1"></i>
+                WhatsApp se abre con el mensaje escrito, pero eliges el chat y lo envías tú.
+              </div>
+            </div>
+            <!--end::Texto-->
+          </div>
+
+          <div class="col-lg-5">
+            <!--begin::Qué incluir-->
+            <div class="card hrr-fade-in">
+              <div class="card-header">
+                <h2 class="card-title fs-5 mb-0">
+                  <i class="bi bi-sliders me-1"></i> Qué incluir en el texto
+                </h2>
+              </div>
+              <div class="card-body" [formGroup]="form">
+                <div class="form-check form-switch mb-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="includeBeneficiary"
+                    formControlName="includeBeneficiary"
+                  />
+                  <label class="form-check-label" for="includeBeneficiary">
+                    Quién cobra este mes
+                    <span class="d-block text-secondary fs-7">Nombre y número de turno.</span>
+                  </label>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="includeDebtors"
+                    formControlName="includeDebtors"
+                  />
+                  <label class="form-check-label" for="includeDebtors">
+                    Nombres de quien falta por pagar
+                    <span class="d-block text-secondary fs-7">
+                      Útil para no tener que perseguir a nadie por privado.
+                    </span>
+                  </label>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="includeLink"
+                    formControlName="includeLink"
+                  />
+                  <label class="form-check-label" for="includeLink">
+                    Enlace al grupo
+                    <span class="d-block text-secondary fs-7">
+                      Para que marquen el pago ellos mismos.
+                    </span>
+                  </label>
+                </div>
+
+                <div class="form-check form-switch mb-0">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="includePaymentDetails"
+                    formControlName="includePaymentDetails"
+                  />
+                  <label class="form-check-label" for="includePaymentDetails">
+                    Datos de pago
+                    <span class="d-block text-secondary fs-7">
+                      @if (currentPool.notes) {
+                        La nota que dejaste al crear la porra.
+                      } @else {
+                        No pusiste ninguna nota al crear la porra.
+                      }
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!--end::Qué incluir-->
+
+            <div class="card hrr-fade-in">
+              <div class="card-body d-flex align-items-start gap-3">
+                <i class="bi bi-check2-square fs-4 text-secondary"></i>
+                <div class="flex-grow-1">
+                  <p class="mb-1">¿Quieres ver quién falta antes de avisar?</p>
+                  <a [routerLink]="['/pools', poolId(), 'payments']" class="btn btn-sm btn-outline-secondary">
+                    Pagos del mes
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    } @else if (loading()) {
+      <p class="text-secondary" role="status">
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+        Preparando el recordatorio…
+      </p>
+    } @else {
+      <div class="alert alert-warning" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage() }}
+        <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
+      </div>
+    }
+  </div>
+</div>
