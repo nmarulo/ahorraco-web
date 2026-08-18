@@ -15,4 +15,15 @@ export interface GetOrderRes {
 
   /** Vacío mientras no se haya hecho el sorteo. */
   readonly turns: TurnRes[];
+
+  /**
+   * Cuántas cuotas del mes en curso ha dado el organizador por recibidas.
+   */
+  readonly confirmedPayments: number;
+
+  /**
+   * Cuántas cuotas se esperan ese mes: todos los participantes menos quien
+   * cobra, que no paga la suya. Va a cero si la porra no está en marcha.
+   */
+  readonly expectedPayments: number;
 }

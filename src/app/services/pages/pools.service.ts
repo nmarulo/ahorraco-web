@@ -190,10 +190,13 @@ export class PoolsService {
       return this.simulateNotFound('No existe ninguna porra con ese identificador.');
     }
 
+    // El mes lo pone el servidor; aquí lo suple el reloj del navegador.
+    const currentMonth = this.currentMonth();
+
     return this.simulate({
-      // El mes lo pone el servidor; aquí lo suple el reloj del navegador.
-      currentMonth: this.currentMonth(),
-      turns: this.toTurnsRes(pool)
+      currentMonth,
+      turns: this.toTurnsRes(pool),
+      ...this.countCurrentPayments(pool, currentMonth)
     });
   }
 
@@ -441,6 +444,34 @@ export class PoolsService {
     const [year, monthNumber] = month.split('-').map(Number);
 
     return new Date(year, monthNumber - 1, 1).toLocaleDateString('es-ES', { month: 'long' });
+  }
+
+  /**
+   * Pulso del mes en curso para el orden de cobro: cuántas cuotas hay
+   * confirmadas y cuántas se esperan. Sin nombres, que esa pantalla la ve todo
+   * el grupo.
+   */
+  private countCurrentPayments(
+    pool: StoredPool,
+    month: string
+  ): { confirmedPayments: number; expectedPayments: number } {
+    const beneficiaryId = pool.turns.find((turn) => turn.month === month)?.participantId;
+
+    // Fuera del rango de la porra no hay cuotas que contar.
+    if (!beneficiaryId) {
+      return { confirmedPayments: 0, expectedPayments: 0 };
+    }
+
+    const confirmedPayments = pool.payments.filter(
+      (payment) =>
+        payment.month === month && payment.confirmed && payment.participantId !== beneficiaryId
+    ).length;
+
+    return {
+      confirmedPayments,
+      // Quien cobra ese mes no paga su cuota.
+      expectedPayments: Math.max(pool.participants.length - 1, 0)
+    };
   }
 
   /** La cuota de alguien en un mes; si no hay registro, va a cero. */

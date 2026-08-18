@@ -241,7 +241,12 @@
                                 <span class="badge text-bg-success">Cobrado</span>
                               }
                               @case ('CURRENT') {
-                                <span class="badge text-bg-primary">En curso</span>
+                                <span class="badge text-bg-primary">
+                                  En curso
+                                  @if (expectedPayments() > 0) {
+                                    · {{ confirmedPayments() }}/{{ expectedPayments() }} pagos
+                                  }
+                                </span>
                               }
                               @default {
                                 <span class="badge text-bg-secondary">Pendiente</span>

@@ -35,6 +35,10 @@ export class PoolOrder implements OnInit {
   /** Con quién se está usando esta porra, si ya se ha elegido. */
   protected readonly identity = signal<ParticipantIdentity | null>(null);
 
+  /** Pulso del mes en curso: cuotas confirmadas y cuántas se esperan. */
+  protected readonly confirmedPayments = signal(0);
+  protected readonly expectedPayments = signal(0);
+
   /** Filtro de la tabla; `ALL` no filtra nada. */
   protected readonly filter = signal<TurnState | 'ALL'>('ALL');
 
@@ -188,6 +192,8 @@ export class PoolOrder implements OnInit {
       next: (order) => {
         this.turns.set(order.turns);
         this.currentMonth.set(order.currentMonth);
+        this.confirmedPayments.set(order.confirmedPayments);
+        this.expectedPayments.set(order.expectedPayments);
         this.loading.set(false);
       },
       error: (error: Error) => {
