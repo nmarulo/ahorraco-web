@@ -6,6 +6,10 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { TurnRes } from '@app/models/turn-res';
 import { TurnState } from '@app/modules/pools/models/turn-state';
 import { PoolsService } from '@app/services/pages/pools.service';
+import {
+  ParticipantIdentity,
+  ParticipantSession
+} from '@app/services/session/participant-session.service';
 
 @Component({
   selector: 'app-pool-order',
@@ -17,6 +21,7 @@ export class PoolOrder implements OnInit {
   private static readonly PERCENT = 100;
 
   private readonly pools = inject(PoolsService);
+  private readonly session = inject(ParticipantSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly poolId = input.required<string>();
@@ -26,6 +31,9 @@ export class PoolOrder implements OnInit {
   protected readonly currentMonth = signal('');
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
+
+  /** Con quién se está usando esta porra, si ya se ha elegido. */
+  protected readonly identity = signal<ParticipantIdentity | null>(null);
 
   /** Filtro de la tabla; `ALL` no filtra nada. */
   protected readonly filter = signal<TurnState | 'ALL'>('ALL');
@@ -81,6 +89,36 @@ export class PoolOrder implements OnInit {
     return turns.length > 0 && this.currentMonth() > turns[turns.length - 1].month;
   });
 
+  protected readonly myTurn = computed(() => {
+    const me = this.identity();
+    if (!me) {
+      return null;
+    }
+
+    return this.turns().find((turn) => turn.participantId === me.participantId) ?? null;
+  });
+
+  /**
+   * Cuotas que me quedan por pagar: los meses que faltan menos el mío, porque
+   * quien cobra ese mes no paga.
+   */
+  protected readonly myRemainingFees = computed(() => {
+    const me = this.identity();
+    if (!me) {
+      return 0;
+    }
+
+    return this.turns().filter(
+      (turn) => turn.month >= this.currentMonth() && turn.participantId !== me.participantId
+    ).length;
+  });
+
+  protected readonly lastMonth = computed(() => {
+    const turns = this.turns();
+
+    return turns.length > 0 ? turns[turns.length - 1].month : '';
+  });
+
   protected readonly visibleTurns = computed(() => {
     const selected = this.filter();
     if (selected === 'ALL') {
@@ -91,7 +129,12 @@ export class PoolOrder implements OnInit {
   });
 
   ngOnInit(): void {
+    this.identity.set(this.session.get(this.poolId()));
     this.load();
+  }
+
+  protected isMe(turn: TurnRes): boolean {
+    return turn.participantId === this.identity()?.participantId;
   }
 
   /** En qué punto está un turno respecto al mes en curso. */
