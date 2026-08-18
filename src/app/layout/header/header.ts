@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+
+import { ThemePreference, ThemeService } from '@app/services/layout/theme.service';
 
 @Component({
   selector: 'app-header',
@@ -6,4 +8,14 @@ import { Component } from '@angular/core';
   templateUrl: './header.html',
   styleUrl: './header.css'
 })
-export class Header {}
+export class Header {
+  private readonly theme = inject(ThemeService);
+
+  /** Lo que hay elegido ahora mismo: marca el icono y la opción activa. */
+  protected readonly preference = this.theme.preference;
+
+  /** Cambia el tema de color. */
+  protected useTheme(preference: ThemePreference): void {
+    this.theme.use(preference);
+  }
+}

@@ -12,4 +12,62 @@
       </a>
     </li>
   </ul>
+
+  <ul class="navbar-nav ms-auto">
+    <!--begin::Tema claro/oscuro -->
+    <li class="nav-item dropdown">
+      <a
+        class="nav-link"
+        href="#"
+        role="button"
+        aria-label="Cambiar tema de color"
+        data-bs-toggle="dropdown"
+      >
+        @switch (preference()) {
+          @case ('light') {
+            <i class="bi bi-sun-fill"></i>
+          }
+          @case ('dark') {
+            <i class="bi bi-moon-fill"></i>
+          }
+          @default {
+            <i class="bi bi-circle-half"></i>
+          }
+        }
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end" style="--bs-dropdown-min-width: 9rem">
+        <li>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="preference() === 'light'"
+            (click)="useTheme('light')"
+          >
+            <i class="bi bi-sun-fill me-2"></i> Claro
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="preference() === 'dark'"
+            (click)="useTheme('dark')"
+          >
+            <i class="bi bi-moon-fill me-2"></i> Oscuro
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="dropdown-item"
+            [class.active]="preference() === 'auto'"
+            (click)="useTheme('auto')"
+          >
+            <i class="bi bi-circle-half me-2"></i> Automático
+          </button>
+        </li>
+      </ul>
+    </li>
+    <!--end::Tema claro/oscuro-->
+  </ul>
 </div>
