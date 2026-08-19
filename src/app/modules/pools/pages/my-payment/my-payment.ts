@@ -2,11 +2,14 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { PaymentRes } from '@app/models/payment-res';
-import { TurnRes } from '@app/models/turn-res';
-import { ParticipantIdentity, ParticipantSession } from '@app/services/session/participant-session.service';
+import {
+  ParticipantIdentity,
+  ParticipantSession
+} from '@app/services/session/participant-session.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 
 @Component({
@@ -24,9 +27,12 @@ export class MyPayment implements OnInit {
 
   protected readonly pool = signal<GetPoolRes | null>(null);
   protected readonly participants = signal<ParticipantRes[]>([]);
-  protected readonly turns = signal<TurnRes[]>([]);
   protected readonly payments = signal<PaymentRes[]>([]);
-  protected readonly currentMonth = signal('');
+
+  private readonly order = signal<GetOrderRes | null>(null);
+
+  protected readonly turns = computed(() => this.order()?.turns ?? []);
+  protected readonly currentMonth = computed(() => this.order()?.currentMonth ?? '');
   protected readonly identity = signal<ParticipantIdentity | null>(null);
   protected readonly loading = signal(true);
   protected readonly sending = signal(false);
@@ -106,7 +112,10 @@ export class MyPayment implements OnInit {
 
     this.pools.markPaid(this.poolId(), this.currentMonth(), person.participantId).subscribe({
       next: (payment) => {
-        this.payments.update((all) => [...all.filter((one) => one.month !== payment.month), payment]);
+        this.payments.update((all) => [
+          ...all.filter((one) => one.month !== payment.month),
+          payment
+        ]);
         this.sending.set(false);
       },
       error: (error: Error) => {
@@ -118,7 +127,10 @@ export class MyPayment implements OnInit {
 
   /** Estado de mi cuota en un mes ya pasado. */
   protected paymentStateOf(month: string): 'COLLECTED' | 'CONFIRMED' | 'MARKED' | 'UNPAID' {
-    if (this.turns().find((turn) => turn.month === month)?.participantId === this.identity()?.participantId) {
+    if (
+      this.turns().find((turn) => turn.month === month)?.participantId ===
+      this.identity()?.participantId
+    ) {
       return 'COLLECTED';
     }
 
@@ -188,8 +200,7 @@ export class MyPayment implements OnInit {
 
     this.pools.getOrder(this.poolId()).subscribe({
       next: (order) => {
-        this.turns.set(order.turns);
-        this.currentMonth.set(order.currentMonth);
+        this.order.set(order);
         this.loading.set(false);
         this.loadMyPayments();
       },

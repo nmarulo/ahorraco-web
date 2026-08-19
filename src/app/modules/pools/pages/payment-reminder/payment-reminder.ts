@@ -5,9 +5,9 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 
+import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { GetReminderRes } from '@app/models/get-reminder-res';
-import { TurnRes } from '@app/models/turn-res';
 import { PoolsService } from '@app/services/pages/pools.service';
 
 @Component({
@@ -24,8 +24,13 @@ export class PaymentReminder implements OnInit {
   readonly poolId = input.required<string>();
 
   protected readonly pool = signal<GetPoolRes | null>(null);
-  protected readonly turns = signal<TurnRes[]>([]);
-  protected readonly currentMonth = signal('');
+
+  private readonly order = signal<GetOrderRes | null>(null);
+
+  protected readonly turns = computed(() => this.order()?.turns ?? []);
+  protected readonly currentMonth = computed(() => this.order()?.currentMonth ?? '');
+
+  /** Mes del que se avisa; lo elige el componente, no la API. */
   protected readonly month = signal('');
   protected readonly loading = signal(true);
   protected readonly copied = signal(false);
@@ -136,8 +141,7 @@ export class PaymentReminder implements OnInit {
   private loadOrder(): void {
     this.pools.getOrder(this.poolId()).subscribe({
       next: (order) => {
-        this.turns.set(order.turns);
-        this.currentMonth.set(order.currentMonth);
+        this.order.set(order);
         this.loading.set(false);
 
         // Se avisa del mes en curso; si la porra ya terminó, del último.

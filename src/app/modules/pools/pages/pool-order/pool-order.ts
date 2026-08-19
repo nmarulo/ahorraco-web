@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { TurnRes } from '@app/models/turn-res';
 import { TurnState } from '@app/modules/pools/models/turn-state';
@@ -27,8 +28,11 @@ export class PoolOrder implements OnInit {
   readonly poolId = input.required<string>();
 
   protected readonly pool = signal<GetPoolRes | null>(null);
-  protected readonly turns = signal<TurnRes[]>([]);
-  protected readonly currentMonth = signal('');
+  private readonly order = signal<GetOrderRes | null>(null);
+
+  protected readonly turns = computed(() => this.order()?.turns ?? []);
+  protected readonly currentMonth = computed(() => this.order()?.currentMonth ?? '');
+
   protected readonly loading = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
 
@@ -36,8 +40,8 @@ export class PoolOrder implements OnInit {
   protected readonly identity = signal<ParticipantIdentity | null>(null);
 
   /** Pulso del mes en curso: cuotas confirmadas y cuántas se esperan. */
-  protected readonly confirmedPayments = signal(0);
-  protected readonly expectedPayments = signal(0);
+  protected readonly confirmedPayments = computed(() => this.order()?.confirmedPayments ?? 0);
+  protected readonly expectedPayments = computed(() => this.order()?.expectedPayments ?? 0);
 
   /** Filtro de la tabla; `ALL` no filtra nada. */
   protected readonly filter = signal<TurnState | 'ALL'>('ALL');
@@ -190,10 +194,7 @@ export class PoolOrder implements OnInit {
   private loadOrder(): void {
     this.pools.getOrder(this.poolId()).subscribe({
       next: (order) => {
-        this.turns.set(order.turns);
-        this.currentMonth.set(order.currentMonth);
-        this.confirmedPayments.set(order.confirmedPayments);
-        this.expectedPayments.set(order.expectedPayments);
+        this.order.set(order);
         this.loading.set(false);
       },
       error: (error: Error) => {

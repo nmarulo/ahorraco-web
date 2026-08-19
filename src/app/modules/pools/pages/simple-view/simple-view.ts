@@ -2,10 +2,10 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { PaymentRes } from '@app/models/payment-res';
-import { TurnRes } from '@app/models/turn-res';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import {
@@ -28,9 +28,12 @@ export class SimpleView implements OnInit {
 
   protected readonly pool = signal<GetPoolRes | null>(null);
   protected readonly participants = signal<ParticipantRes[]>([]);
-  protected readonly turns = signal<TurnRes[]>([]);
   protected readonly payments = signal<PaymentRes[]>([]);
-  protected readonly currentMonth = signal('');
+
+  private readonly order = signal<GetOrderRes | null>(null);
+
+  protected readonly turns = computed(() => this.order()?.turns ?? []);
+  protected readonly currentMonth = computed(() => this.order()?.currentMonth ?? '');
   protected readonly identity = signal<ParticipantIdentity | null>(null);
   protected readonly loading = signal(true);
   protected readonly sending = signal(false);
@@ -176,8 +179,7 @@ export class SimpleView implements OnInit {
 
     this.pools.getOrder(this.poolId()).subscribe({
       next: (order) => {
-        this.turns.set(order.turns);
-        this.currentMonth.set(order.currentMonth);
+        this.order.set(order);
         this.loading.set(false);
         this.loadMyPayments();
       },
