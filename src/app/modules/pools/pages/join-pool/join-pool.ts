@@ -13,7 +13,7 @@ import { ParticipantSession } from '@app/services/session/participant-session.se
   selector: 'app-join-pool',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './join-pool.html',
-  styleUrl: './join-pool.css'
+  styleUrl: './join-pool.css',
 })
 export class JoinPool implements OnInit {
   private static readonly MAX_NAME_LENGTH = 80;
@@ -30,9 +30,6 @@ export class JoinPool implements OnInit {
 
   protected readonly pool = signal<GetPoolInvitationRes | null>(null);
 
-  /** Se rellena al unirse, para poder enlazar a la porra ya dentro. */
-  protected readonly poolId = signal('');
-
   protected readonly loading = signal(true);
   protected readonly sending = signal(false);
   protected readonly joined = signal(false);
@@ -41,7 +38,7 @@ export class JoinPool implements OnInit {
   protected readonly form = this.formBuilder.nonNullable.group({
     fullName: ['', [Validators.required, Validators.maxLength(JoinPool.MAX_NAME_LENGTH)]],
     phone: ['', Validators.pattern(JoinPool.PHONE_PATTERN)],
-    accepted: [true, Validators.requiredTrue]
+    accepted: [true, Validators.requiredTrue],
   });
 
   /** Quien cobra no paga su cuota: el bote lo ponen todos los demás. */
@@ -60,6 +57,8 @@ export class JoinPool implements OnInit {
     return pool !== null && pool.joinedCount >= pool.numParticipants;
   });
 
+  protected readonly poolId = computed(() => this.pool()?.publicId || '0');
+
   constructor() {
     inject(BodyShellService).useLoginShell();
   }
@@ -73,7 +72,7 @@ export class JoinPool implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -103,9 +102,8 @@ export class JoinPool implements OnInit {
         // elegirse el nombre de la lista después.
         this.session.save(currentPool.publicId, {
           participantPublicId: response.publicId,
-          fullName: this.form.getRawValue().fullName.trim()
+          fullName: this.form.getRawValue().fullName.trim(),
         });
-        this.poolId.set(currentPool.publicId);
 
         this.joined.set(true);
         this.sending.set(false);
@@ -113,7 +111,7 @@ export class JoinPool implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.sending.set(false);
-      }
+      },
     });
   }
 
@@ -130,7 +128,7 @@ export class JoinPool implements OnInit {
     return {
       invitationToken: this.invitationToken(),
       fullName: values.fullName.trim(),
-      ...(phone ? { phone } : {})
+      ...(phone ? { phone } : {}),
     };
   }
 }

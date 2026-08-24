@@ -53,11 +53,11 @@
             toca.
           </p>
           <div class="d-grid gap-2">
-            <a [routerLink]="['/pools', poolId(), 'order']" class="btn btn-primary">
-              <i class="bi bi-list-ol me-1"></i> Ver el orden de cobro
-            </a>
-            <a [routerLink]="['/pools', poolId(), 'my-payment']" class="btn btn-outline-secondary">
+            <a [routerLink]="['/pools', poolId(), 'simple']" class="btn btn-success">
               <i class="bi bi-cash-coin me-1"></i> Mi pago del mes
+            </a>
+            <a [routerLink]="['/pools', poolId(), 'order']" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-list-ol me-1"></i> Ver el orden de cobro
             </a>
           </div>
           <p class="text-secondary fs-7 mt-3 mb-0">
@@ -73,6 +73,28 @@
         Esta porra ya está completa: hay {{ currentPool.numParticipants }} personas dentro. Habla con
         quien te pasó el enlace.
       </div>
+      <!--begin::Ya estabas dentro-->
+      <div class="card mt-3">
+        <div class="card-body text-center">
+          <p class="fw-semibold mb-1">
+            <i class="bi bi-person-check me-1"></i> ¿Ya te habías unido antes?
+          </p>
+          <p class="text-secondary fs-7 mb-3">
+            No hace falta que vuelvas a entrar: sigue el orden de cobro y marca tu cuota desde aquí.
+          </p>
+          <div class="d-grid gap-2">
+            <a [routerLink]="['/pools', poolId(), 'simple']"
+               class="btn btn-success">
+              <i class="bi bi-cash-coin me-1"></i> Mi pago del mes
+            </a>
+            <a [routerLink]="['/pools', poolId(), 'order']"
+               class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-list-ol me-1"></i> Ver el orden de cobro
+            </a>
+          </div>
+        </div>
+      </div>
+      <!--end::Ya estabas dentro-->
     } @else {
       <!--begin::Alta sin contraseña-->
       <div class="card">
@@ -174,6 +196,20 @@
         </div>
       </div>
       <!--end::Alta sin contraseña-->
+      <!--begin::Ya estabas dentro-->
+      <div class="card mt-3">
+        <div class="card-body text-center">
+          <p class="fw-semibold mb-1">
+            <i class="bi bi-person-check me-1"></i> ¿Ya te habías unido antes?
+          </p>
+          <div class="d-grid gap-2">
+            <a [routerLink]="['/pools', poolId(), 'simple']" class="btn btn-outline-success">
+              <i class="bi bi-cash-coin me-1"></i> Mi pago del mes
+            </a>
+          </div>
+        </div>
+      </div>
+      <!--end::Ya estabas dentro-->
     }
   } @else {
     <div class="alert alert-warning" role="alert">
