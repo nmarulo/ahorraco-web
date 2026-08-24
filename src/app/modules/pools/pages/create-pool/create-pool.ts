@@ -5,70 +5,91 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@
 import { RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 
-import { CreatePoolReq, PaymentDueDay } from '@app/models/create-pool-req';
+import { CreatePoolReq } from '@app/models/create-pool-req';
 import { CreatePoolRes } from '@app/models/create-pool-res';
 import { CodeMode } from '@app/modules/pools/models/code-mode';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-create-pool',
   imports: [ReactiveFormsModule, DecimalPipe, RouterLink],
   templateUrl: './create-pool.html',
-  styleUrl: './create-pool.css'
+  styleUrl: './create-pool.css',
 })
 export class CreatePool {
-  /** Mínimo para que la porra tenga sentido: alguien cobra y alguien paga. */
+  /** Los mismos límites que valida la API; si no, se responde un 400. */
   protected static readonly MIN_PARTICIPANTS = 2;
-
-  /** Tope para que el sorteo y las listas sigan siendo manejables. */
   protected static readonly MAX_PARTICIPANTS = 30;
+  protected static readonly MIN_DUE_DAY = 1;
+  protected static readonly MAX_DUE_DAY = 20;
 
   private static readonly MIN_CODE_LENGTH = 4;
   private static readonly MAX_CODE_LENGTH = 30;
   private static readonly MAX_NAME_LENGTH = 80;
+  private static readonly MAX_NOTES_LENGTH = 500;
+
+  /** Longitud del sufijo aleatorio del código que se propone. */
+  private static readonly SUFFIX_LENGTH = 4;
+
+  private static readonly CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+  private static readonly DEFAULT_INITIALS = 'PORRA';
+  private static readonly MAX_INITIALS = 4;
 
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
+  private readonly organizer = inject(OrganizerSession);
 
   protected readonly minParticipants = CreatePool.MIN_PARTICIPANTS;
   protected readonly maxParticipants = CreatePool.MAX_PARTICIPANTS;
 
+  protected readonly minStartMonth = CreatePool.currentMonth();
+
   protected readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(CreatePool.MAX_NAME_LENGTH)]],
-    monthlyFee: [100, [Validators.required, Validators.min(1)]],
+    monthlyFee: [1, [Validators.required, Validators.min(1)]],
     numParticipants: [
-      10,
+      12,
       [
         Validators.required,
         Validators.min(CreatePool.MIN_PARTICIPANTS),
-        Validators.max(CreatePool.MAX_PARTICIPANTS)
-      ]
+        Validators.max(CreatePool.MAX_PARTICIPANTS),
+      ],
     ],
-    startDate: [CreatePool.currentMonth(), Validators.required],
-    paymentDueDay: ['DAY_10' as PaymentDueDay, Validators.required],
-    notes: [''],
+    startDate: [CreatePool.currentMonth(), [Validators.required, CreatePool.notInThePast]],
+    paymentDueDay: [
+      10,
+      [
+        Validators.required,
+        Validators.min(CreatePool.MIN_DUE_DAY),
+        Validators.max(CreatePool.MAX_DUE_DAY),
+      ],
+    ],
+    notes: ['', Validators.maxLength(CreatePool.MAX_NOTES_LENGTH)],
     codeMode: ['GENERATED' as CodeMode],
-    customCode: ['']
+    customCode: [''],
   });
 
-  /** Valores del formulario como señal, para que la vista previa sea reactiva. */
+  /** Valores del formulario como signal, para la sección "Cómo quedará". */
   private readonly values = toSignal(
     this.form.valueChanges.pipe(map(() => this.form.getRawValue())),
-    { initialValue: this.form.getRawValue() }
+    { initialValue: this.form.getRawValue() },
   );
 
   /** Parte aleatoria del código propuesto; solo cambia si se pide otro. */
-  private readonly codeSuffix = signal(this.pools.generateSuffix());
+  private readonly codeSuffix = signal(CreatePool.randomSuffix());
 
   protected readonly sending = signal(false);
   protected readonly result = signal<CreatePoolRes | null>(null);
   protected readonly copied = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly previewName = computed(() => this.values().name.trim() || 'Tu porra');
 
   /** Cada participante cobra un mes, así que la duración es el nº de participantes. */
   protected readonly durationMonths = computed(() =>
-    CreatePool.toNumber(this.values().numParticipants)
+    CreatePool.toNumber(this.values().numParticipants),
   );
 
   /** Quien cobra no paga su cuota: el bote lo ponen todos los demás. */
@@ -80,7 +101,7 @@ export class CreatePool {
   });
 
   protected readonly suggestedCode = computed(() =>
-    this.pools.composeManagementCode(this.values().name, this.codeSuffix())
+    CreatePool.composeCode(this.values().name, this.codeSuffix()),
   );
 
   constructor() {
@@ -101,20 +122,24 @@ export class CreatePool {
     }
 
     this.sending.set(true);
+    this.errorMessage.set(null);
+
     this.pools.createPool(this.buildRequest()).subscribe({
       next: (response) => {
+        this.organizer.save(response.publicId, response.managementCode);
         this.result.set(response);
         this.sending.set(false);
       },
-      // Sin manejo de errores todavía: el mock nunca falla y el tratamiento
-      // centralizado de errores de la API llega al conectar `ahorraco-api`.
-      error: () => this.sending.set(false)
+      error: (error: Error) => {
+        this.errorMessage.set(error.message);
+        this.sending.set(false);
+      },
     });
   }
 
   /** Propone otro código de gestión, manteniendo las iniciales del nombre. */
   protected regenerateCode(): void {
-    this.codeSuffix.set(this.pools.generateSuffix());
+    this.codeSuffix.set(CreatePool.randomSuffix());
   }
 
   /** Copia el código de gestión al portapapeles. */
@@ -138,9 +163,10 @@ export class CreatePool {
   protected startAnother(): void {
     this.form.reset();
     this.form.controls.startDate.setValue(CreatePool.currentMonth());
-    this.codeSuffix.set(this.pools.generateSuffix());
+    this.codeSuffix.set(CreatePool.randomSuffix());
     this.result.set(null);
     this.copied.set(false);
+    this.errorMessage.set(null);
   }
 
   /** Un campo solo se marca en rojo cuando ya se ha tocado. */
@@ -157,11 +183,12 @@ export class CreatePool {
       name: values.name.trim(),
       monthlyFee: values.monthlyFee,
       numParticipants: values.numParticipants,
-      startDate: values.startDate,
+      // El `<input type="month">` da `AAAA-MM` y la API espera una fecha.
+      startDate: `${values.startDate}-01`,
       paymentDueDay: values.paymentDueDay,
       ...(notes ? { notes } : {}),
       managementCode:
-        values.codeMode === 'CUSTOM' ? values.customCode.trim() : this.suggestedCode()
+        values.codeMode === 'CUSTOM' ? values.customCode.trim() : this.suggestedCode(),
     };
   }
 
@@ -173,13 +200,42 @@ export class CreatePool {
       control.setValidators([
         Validators.required,
         Validators.minLength(CreatePool.MIN_CODE_LENGTH),
-        Validators.maxLength(CreatePool.MAX_CODE_LENGTH)
+        Validators.maxLength(CreatePool.MAX_CODE_LENGTH),
       ]);
     } else {
       control.clearValidators();
     }
 
     control.updateValueAndValidity();
+  }
+
+  /** La API rechaza empezar en un mes anterior al actual. */
+  private static notInThePast(control: AbstractControl): { pastMonth: true } | null {
+    const month = control.value as string;
+
+    return month && month < CreatePool.currentMonth() ? { pastMonth: true } : null;
+  }
+
+  /** Iniciales del nombre más un sufijo aleatorio. */
+  private static composeCode(name: string, suffix: string): string {
+    const initials = name
+      .trim()
+      .split(/\s+/)
+      .map((word) => word.charAt(0))
+      .filter((letter) => /\p{L}|\p{N}/u.test(letter))
+      .join('')
+      .toUpperCase()
+      .slice(0, CreatePool.MAX_INITIALS);
+
+    return `${initials || CreatePool.DEFAULT_INITIALS}-${suffix}`;
+  }
+
+  /** Sufijo aleatorio del alfabeto legible. */
+  private static randomSuffix(): string {
+    const alphabet = CreatePool.CODE_ALPHABET;
+    const bytes = crypto.getRandomValues(new Uint8Array(CreatePool.SUFFIX_LENGTH));
+
+    return Array.from(bytes, (byte) => alphabet.charAt(byte % alphabet.length)).join('');
   }
 
   /** Mes en curso en formato `AAAA-MM`, el que entiende `<input type="month">`. */

@@ -51,7 +51,7 @@
               <button type="button" class="btn btn-outline-secondary" (click)="startAnother()">
                 <i class="bi bi-arrow-counterclockwise me-1"></i> Crear otra porra
               </button>
-              <a [routerLink]="['/pools', created.poolId, 'invite']" class="btn btn-primary">
+              <a [routerLink]="['/pools', created.publicId, 'invite']" class="btn btn-primary">
                 Invitar participantes <i class="bi bi-arrow-right ms-1"></i>
               </a>
             </div>
@@ -135,20 +135,32 @@
                       id="startDate"
                       class="form-control"
                       [class.is-invalid]="isInvalid(form.controls.startDate)"
+                      [min]="minStartMonth"
                       formControlName="startDate"
                     />
                     @if (isInvalid(form.controls.startDate)) {
-                      <div class="invalid-feedback d-block">Elige el mes en que arranca.</div>
+                      <div class="invalid-feedback d-block">
+                        @if (form.controls.startDate.hasError('pastMonth')) {
+                          La porra no puede empezar en un mes que ya ha pasado.
+                        } @else {
+                          Elige el mes en que arranca.
+                        }
+                      </div>
                     }
                   </div>
 
                   <div class="col-md-6 mb-3">
                     <label for="paymentDueDay" class="form-label">Día límite de pago</label>
-                    <select id="paymentDueDay" class="form-select" formControlName="paymentDueDay">
-                      <option value="DAY_5">Día 5 de cada mes</option>
-                      <option value="DAY_10">Día 10 de cada mes</option>
-                      <option value="DAY_15">Día 15 de cada mes</option>
-                      <option value="LAST_DAY">Último día del mes</option>
+                    <select
+                      id="paymentDueDay"
+                      class="form-select"
+                      formControlName="paymentDueDay"
+                      [class.is-invalid]="isInvalid(form.controls.paymentDueDay)"
+                    >
+                      <option [ngValue]="5">Día 5 de cada mes</option>
+                      <option [ngValue]="10">Día 10 de cada mes</option>
+                      <option [ngValue]="15">Día 15 de cada mes</option>
+                      <option [ngValue]="20">Día 20 de cada mes</option>
                     </select>
                   </div>
                 </div>
@@ -241,6 +253,14 @@
                   solo se registra quién ha pagado.
                 </div>
               </div>
+
+              @if (errorMessage(); as message) {
+                <div class="card-body pt-0">
+                  <div class="alert alert-danger mb-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                  </div>
+                </div>
+              }
 
               <div class="card-footer text-end">
                 <button type="submit" class="btn btn-primary" [disabled]="sending()">
