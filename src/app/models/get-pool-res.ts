@@ -1,11 +1,5 @@
-/**
- * La porra vista por su organizador.
- *
- * Incluye el código de gestión y el token de invitación, así que solo debe
- * devolverse a quien se identifique con el `managementCode`.
- */
 export interface GetPoolRes {
-  readonly poolId: string;
+  readonly publicId: string;
 
   readonly name: string;
 
@@ -13,17 +7,21 @@ export interface GetPoolRes {
 
   readonly numParticipants: number;
 
-  /** Mes de inicio en formato `AAAA-MM`. */
+  /**
+   * Mes de inicio, en formato ISO `AAAA-MM-DD`. El dia es indiferente.
+   */
   readonly startDate: string;
 
-  /** Cuándo vence la cuota cada mes; el mismo código que en el alta. */
-  readonly paymentDueDay: string;
+  /**
+   * Día del pago de la cuota.
+   */
+  readonly paymentDueDay: number;
 
-  /** Nota que dejó el organizador para el grupo, si la puso. */
   readonly notes?: string;
 
-  readonly managementCode: string;
+  readonly joinedCount: number;
 
-  /** Token que forma el enlace de invitación que reparte el organizador. */
-  readonly invitationToken: string;
+  readonly managementCode?: string;
+
+  readonly invitationToken?: string;
 }
