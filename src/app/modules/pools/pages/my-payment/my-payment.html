@@ -47,7 +47,7 @@
                   <p class="fs-1 mb-2 text-secondary"><i class="bi bi-hourglass-split"></i></p>
                   <p class="mb-0">
                     La porra empieza en
-                    <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>. Todavía no
+                    <strong>{{ turns()[0].month | monthDate: 'MMMM \'de\' y' }}</strong>. Todavía no
                     hay ninguna cuota que pagar.
                   </p>
                 </div>
@@ -61,7 +61,7 @@
                   <p class="fs-1 mb-2 text-success"><i class="bi bi-gift-fill"></i></p>
                   <h2 class="fs-5 mb-2">Este mes cobras tú</h2>
                   <p class="text-secondary mb-0">
-                    En {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }} te toca recibir el bote, así
+                    En {{ currentMonth() | monthDate: 'MMMM \'de\' y' }} te toca recibir el bote, así
                     que no pagas cuota. Los demás la pagan al organizador, que te lo entregará fuera de
                     la app.
                   </p>
@@ -69,7 +69,7 @@
               } @else {
                 <div class="card-header text-center border-0 pb-0">
                   <p class="text-secondary text-uppercase fs-7 mb-1">
-                    Tu cuota de {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }}
+                    Tu cuota de {{ currentMonth() | monthDate: 'MMMM \'de\' y' }}
                   </p>
                   <p class="hrr-pot-amount mb-0">{{ currentPool.monthlyFee | number: '1.0-2' }} €</p>
                 </div>
@@ -180,7 +180,7 @@
                     <tbody>
                       @for (turn of pastAndCurrentTurns(); track turn.month) {
                         <tr [class.hrr-current-month-row]="turn.month === currentMonth()">
-                          <td>{{ toDate(turn.month) | date: 'MMMM \'de\' y' }}</td>
+                          <td>{{ turn.month | monthDate: 'MMMM \'de\' y' }}</td>
                           <td class="d-none d-md-table-cell text-secondary">
                             @if (turn.participantPublicId === me.participantPublicId) {
                               Tú
@@ -238,7 +238,7 @@
                     <p>
                       Vas a marcar que ya has pagado tu cuota de
                       <strong>{{ currentPool.monthlyFee | number: '1.0-2' }} €</strong> de
-                      {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }}.
+                      {{ currentMonth() | monthDate: 'MMMM \'de\' y' }}.
                     </p>
                     <div class="alert alert-info mb-0" role="alert">
                       <i class="bi bi-info-circle-fill me-2"></i>

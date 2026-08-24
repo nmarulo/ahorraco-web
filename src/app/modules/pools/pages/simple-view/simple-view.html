@@ -9,7 +9,7 @@
            fecha inválida y reventaría. -->
       @if (currentMonth()) {
         <p class="text-secondary mb-0 month-label">
-          {{ toDate(currentMonth()) | date: 'MMMM \'de\' y' }}
+          {{ currentMonth() | monthDate: 'MMMM \'de\' y' }}
         </p>
       }
     </header>
@@ -67,10 +67,10 @@
             <p class="hrr-guide-text text-secondary mb-0">
               @if (alreadyConfirmed()) {
                 El organizador ya ha recibido tu cuota de
-                {{ toDate(currentMonth()) | date: 'MMMM' }}. No tienes que hacer nada más.
+                {{ currentMonth() | monthDate: 'MMMM' }}. No tienes que hacer nada más.
               } @else {
                 Has dicho que pagaste tu cuota de
-                {{ toDate(currentMonth()) | date: 'MMMM' }}. No tienes que hacer nada más.
+                {{ currentMonth() | monthDate: 'MMMM' }}. No tienes que hacer nada más.
               }
             </p>
           </div>
@@ -87,7 +87,7 @@
               {{ currentPool.monthlyFee | number: '1.0-2' }} €
             </p>
             <p class="text-secondary hrr-guide-text mb-4">
-              este mes de {{ toDate(currentMonth()) | date: 'MMMM' }}
+              este mes de {{ currentMonth() | monthDate: 'MMMM' }}
             </p>
 
             <button
@@ -126,7 +126,7 @@
           <div class="card-body text-center">
             <p class="text-secondary hrr-guide-text mb-1">Tú cobras en</p>
             <p class="fs-2 fw-bold mb-1 month-label">
-              {{ toDate(turn.month) | date: 'MMMM \'de\' y' }}
+              {{ turn.month | monthDate: 'MMMM \'de\' y' }}
             </p>
             <p class="text-secondary mb-0">
               Eres el número {{ turn.position }} de {{ turns().length }}

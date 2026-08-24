@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -7,6 +7,7 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { TurnRes } from '@app/models/turn-res';
 import { TurnState } from '@app/modules/pools/models/turn-state';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 import {
   ParticipantIdentity,
   ParticipantSession
@@ -14,7 +15,7 @@ import {
 
 @Component({
   selector: 'app-pool-order',
-  imports: [RouterLink, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe],
   templateUrl: './pool-order.html',
   styleUrl: './pool-order.css'
 })
@@ -157,13 +158,6 @@ export class PoolOrder implements OnInit {
   /** Cambia el filtro de la tabla. */
   protected filterBy(selected: TurnState | 'ALL'): void {
     this.filter.set(selected);
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Iniciales con las que se representa a cada participante. */

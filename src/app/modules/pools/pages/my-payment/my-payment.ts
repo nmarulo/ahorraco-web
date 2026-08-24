@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -11,10 +11,11 @@ import {
   ParticipantSession
 } from '@app/services/session/participant-session.service';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 
 @Component({
   selector: 'app-my-payment',
-  imports: [RouterLink, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe],
   templateUrl: './my-payment.html',
   styleUrl: './my-payment.css'
 })
@@ -156,13 +157,6 @@ export class MyPayment implements OnInit {
     const dueDay = this.pool()?.paymentDueDay;
 
     return dueDay ? `el día ${dueDay} de cada mes` : 'a lo largo del mes';
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Iniciales con las que se representa a cada participante. */

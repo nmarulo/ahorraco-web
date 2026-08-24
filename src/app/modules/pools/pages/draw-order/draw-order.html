@@ -183,7 +183,7 @@
                         </span>
                       }
                       <span class="badge text-bg-secondary text-uppercase">
-                        {{ toDate(turn.month) | date: 'MMM y' }}
+                        {{ turn.month | monthDate: 'MMM y' }}
                       </span>
                     </li>
                   }
@@ -230,7 +230,7 @@
                     <h3 class="timeline-header no-border">Se reparten los meses</h3>
                     <div class="timeline-body">
                       A cada participante le toca un mes distinto, sin repetir, empezando por
-                      {{ toDate(currentPool.startDate) | date: 'MMMM \'de\' y' }}.
+                      {{ currentPool.startDate | monthDate: 'MMMM \'de\' y' }}.
                     </div>
                   </div>
                 </div>

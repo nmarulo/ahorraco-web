@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -9,11 +8,12 @@ import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { GetReminderRes } from '@app/models/get-reminder-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-payment-reminder',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe],
+  imports: [ReactiveFormsModule, RouterLink, MonthDatePipe],
   templateUrl: './payment-reminder.html',
   styleUrl: './payment-reminder.css'
 })
@@ -114,13 +114,6 @@ export class PaymentReminder implements OnInit {
       // pantalla y se puede seleccionar a mano.
       this.copied.set(false);
     }
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Carga la porra y su orden, para saber de qué mes se avisa. */

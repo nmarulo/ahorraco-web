@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -6,11 +6,12 @@ import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { MonthPaymentRes } from '@app/models/get-month-payments-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-month-payments',
-  imports: [RouterLink, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe],
   templateUrl: './month-payments.html',
   styleUrl: './month-payments.css'
 })
@@ -129,13 +130,6 @@ export class MonthPayments implements OnInit {
         this.confirming.set(null);
       }
     });
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Iniciales con las que se representa a cada participante. */

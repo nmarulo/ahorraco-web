@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, DestroyRef, OnInit, computed, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,10 +9,11 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { TurnRes } from '@app/models/turn-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 
 @Component({
   selector: 'app-draw-order',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, DatePipe],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, MonthDatePipe],
   templateUrl: './draw-order.html',
   styleUrl: './draw-order.css'
 })
@@ -112,13 +113,6 @@ export class DrawOrder implements OnInit {
         this.drawing.set(false);
       }
     });
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Iniciales con las que se representa a cada participante. */

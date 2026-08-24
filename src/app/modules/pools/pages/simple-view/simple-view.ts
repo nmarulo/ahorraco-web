@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -8,6 +8,7 @@ import { ParticipantRes } from '@app/models/participant-res';
 import { MyPaymentRes } from '@app/models/get-my-payments-res';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 import {
   ParticipantIdentity,
   ParticipantSession
@@ -15,7 +16,7 @@ import {
 
 @Component({
   selector: 'app-simple-view',
-  imports: [RouterLink, DecimalPipe, DatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe],
   templateUrl: './simple-view.html',
   styleUrl: './simple-view.css'
 })
@@ -152,13 +153,6 @@ export class SimpleView implements OnInit {
       .slice(0, 2)
       .map((word) => word.charAt(0).toUpperCase())
       .join('');
-  }
-
-  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
-  protected toDate(month: string): Date {
-    const [year, monthNumber] = month.split('-').map(Number);
-
-    return new Date(year, monthNumber - 1, 1);
   }
 
   /** Carga la porra y, encadenados, participantes, orden y mis cuotas. */

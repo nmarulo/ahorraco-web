@@ -28,7 +28,7 @@
                   </span>
                   <h3 class="fs-4 mb-1">{{ winner.fullName }}</h3>
                   <p class="text-secondary mb-3">
-                    Turno {{ winner.position }} · {{ toDate(winner.month) | date: 'MMMM \'de\' y' }}
+                    Turno {{ winner.position }} · {{ winner.month | monthDate: 'MMMM \'de\' y' }}
                   </p>
                   <p class="hrr-pot-amount text-success mb-0">
                     {{ monthlyPot() | number: '1.0-2' }} €
@@ -38,7 +38,7 @@
                   <p class="fs-1 mb-2 text-secondary"><i class="bi bi-hourglass-split"></i></p>
                   <p class="mb-0">
                     La porra todavía no ha empezado. El primer turno es
-                    <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>.
+                    <strong>{{ turns()[0].month | monthDate: 'MMMM \'de\' y' }}</strong>.
                   </p>
                 } @else if (finished()) {
                   <p class="fs-1 mb-2 text-success"><i class="bi bi-flag-fill"></i></p>
@@ -69,7 +69,7 @@
                     <div>
                       <p class="mb-0 fw-semibold">{{ mine.fullName }}</p>
                       <p class="text-secondary fs-7 mb-0">
-                        {{ toDate(mine.month) | date: 'MMMM \'de\' y' }} ·
+                        {{ mine.month | monthDate: 'MMMM \'de\' y' }} ·
                         @switch (stateOf(mine)) {
                           @case ('COLLECTED') {
                             ya cobrado
@@ -90,10 +90,10 @@
                       No te queda ninguna cuota por pagar.
                     } @else if (myRemainingFees() === 1) {
                       Te queda <strong>1 cuota</strong> por pagar hasta que termine la porra en
-                      {{ toDate(lastMonth()) | date: 'MMMM' }}.
+                      {{ lastMonth() | monthDate: 'MMMM' }}.
                     } @else {
                       Te quedan <strong>{{ myRemainingFees() }} cuotas</strong> por pagar hasta que
-                      termine la porra en {{ toDate(lastMonth()) | date: 'MMMM' }}.
+                      termine la porra en {{ lastMonth() | monthDate: 'MMMM' }}.
                     }
                   </p>
                 </div>
@@ -230,7 +230,7 @@
                             }
                           </td>
                           <td class="d-none d-md-table-cell">
-                            {{ toDate(turn.month) | date: 'MMMM \'de\' y' }}
+                            {{ turn.month | monthDate: 'MMMM \'de\' y' }}
                           </td>
                           <td class="d-none d-lg-table-cell text-end">
                             {{ monthlyPot() | number: '1.0-2' }} €

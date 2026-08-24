@@ -37,7 +37,7 @@
         <div class="alert alert-secondary" role="alert">
           <i class="bi bi-hourglass-split me-2"></i>
           La porra empieza en
-          <strong>{{ toDate(turns()[0].month) | date: 'MMMM \'de\' y' }}</strong>. Todavía no hay
+          <strong>{{ turns()[0].month | monthDate: 'MMMM \'de\' y' }}</strong>. Todavía no hay
           ninguna cuota de la que avisar.
         </div>
       } @else {
@@ -50,7 +50,7 @@
                   <i class="bi bi-megaphone me-1"></i> Texto del recordatorio
                 </h2>
                 <span class="badge text-bg-secondary">
-                  {{ toDate(month()) | date: 'MMMM \'de\' y' }}
+                  {{ month() | monthDate: 'MMMM \'de\' y' }}
                 </span>
               </div>
               <div class="card-body">
