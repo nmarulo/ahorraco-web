@@ -9,6 +9,7 @@ import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { GetReminderRes } from '@app/models/get-reminder-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-payment-reminder',
@@ -19,6 +20,7 @@ import { PoolsService } from '@app/services/pages/pools.service';
 export class PaymentReminder implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
+  private readonly organizer = inject(OrganizerSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly poolId = input.required<string>();
@@ -75,6 +77,8 @@ export class PaymentReminder implements OnInit {
       .join('\n\n');
   });
 
+  protected readonly isOrganizer = computed(() => this.organizer.get(this.poolId()) !== null);
+
   protected readonly drawn = computed(() => this.turns().length > 0);
 
   /** Meses que ya han llegado: de los futuros no se avisa. */
@@ -88,6 +92,11 @@ export class PaymentReminder implements OnInit {
   );
 
   ngOnInit(): void {
+    if (!this.isOrganizer()) {
+      this.loading.set(false);
+      return;
+    }
+
     this.load();
   }
 
@@ -107,7 +116,7 @@ export class PaymentReminder implements OnInit {
     }
   }
 
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 

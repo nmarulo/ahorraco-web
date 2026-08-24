@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
-import { PaymentRes } from '@app/models/payment-res';
+import { MyPaymentRes } from '@app/models/get-my-payments-res';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import {
@@ -28,7 +28,7 @@ export class SimpleView implements OnInit {
 
   protected readonly pool = signal<GetPoolRes | null>(null);
   protected readonly participants = signal<ParticipantRes[]>([]);
-  protected readonly payments = signal<PaymentRes[]>([]);
+  protected readonly payments = signal<MyPaymentRes[]>([]);
 
   private readonly order = signal<GetOrderRes | null>(null);
 
@@ -50,11 +50,11 @@ export class SimpleView implements OnInit {
   protected readonly myTurn = computed(() => {
     const me = this.identity();
 
-    return this.turns().find((turn) => turn.participantId === me?.participantId) ?? null;
+    return this.turns().find((turn) => turn.participantPublicId === me?.participantPublicId) ?? null;
   });
 
   protected readonly iCollectThisMonth = computed(
-    () => this.currentTurn()?.participantId === this.identity()?.participantId
+    () => this.currentTurn()?.participantPublicId === this.identity()?.participantPublicId
   );
 
   private readonly currentPayment = computed(
@@ -97,7 +97,7 @@ export class SimpleView implements OnInit {
   /** Paso 1: tocar tu nombre. */
   protected chooseIdentity(person: ParticipantRes): void {
     const identity: ParticipantIdentity = {
-      participantId: person.participantId,
+      participantPublicId: person.publicId,
       fullName: person.fullName
     };
 
@@ -125,11 +125,15 @@ export class SimpleView implements OnInit {
     this.sending.set(true);
     this.errorMessage.set(null);
 
-    this.pools.markPaid(this.poolId(), this.currentMonth(), me.participantId).subscribe({
+    const month = this.currentMonth();
+
+    this.pools
+      .markPaid(this.poolId(), { participantPublicId: me.participantPublicId, month })
+      .subscribe({
       next: (payment) => {
         this.payments.update((all) => [
           ...all.filter((one) => one.month !== payment.month),
-          payment
+          { month: payment.month, marked: payment.marked, confirmed: false }
         ]);
         this.sending.set(false);
       },
@@ -150,7 +154,7 @@ export class SimpleView implements OnInit {
       .join('');
   }
 
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 
@@ -197,7 +201,7 @@ export class SimpleView implements OnInit {
       return;
     }
 
-    this.pools.getMyPayments(this.poolId(), me.participantId).subscribe({
+    this.pools.getMyPayments(this.poolId(), me.participantPublicId).subscribe({
       next: (payments) => this.payments.set(payments)
     });
   }

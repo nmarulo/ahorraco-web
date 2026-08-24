@@ -91,19 +91,21 @@ export class JoinPool implements OnInit {
     this.sending.set(true);
     this.errorMessage.set(null);
 
-    this.pools.joinPool(this.invitationToken(), this.buildRequest()).subscribe({
+    const currentPool = this.pool();
+
+    if (!currentPool) {
+      return;
+    }
+
+    this.pools.joinPool(currentPool.publicId, this.buildRequest()).subscribe({
       next: (response) => {
         // Quien se une desde este navegador queda identificado sin tener que
         // elegirse el nombre de la lista después.
-        const currentPool = this.pool();
-        if (currentPool) {
-          this.session.save(currentPool.poolId, {
-            participantId: response.participantId,
-            fullName: this.form.getRawValue().fullName.trim(),
-            participantToken: response.participantToken
-          });
-          this.poolId.set(currentPool.poolId);
-        }
+        this.session.save(currentPool.publicId, {
+          participantPublicId: response.publicId,
+          fullName: this.form.getRawValue().fullName.trim()
+        });
+        this.poolId.set(currentPool.publicId);
 
         this.joined.set(true);
         this.sending.set(false);
@@ -126,6 +128,7 @@ export class JoinPool implements OnInit {
     const phone = values.phone.trim();
 
     return {
+      invitationToken: this.invitationToken(),
       fullName: values.fullName.trim(),
       ...(phone ? { phone } : {})
     };

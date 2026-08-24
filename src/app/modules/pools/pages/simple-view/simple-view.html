@@ -150,7 +150,7 @@
           <p class="text-secondary text-center hrr-guide-text mb-4">Toca tu nombre en la lista.</p>
 
           <div class="d-grid gap-3">
-            @for (person of participants(); track person.participantId) {
+            @for (person of participants(); track person.publicId) {
               <button type="button" class="hrr-name-button" (click)="chooseIdentity(person)">
                 <span class="hrr-turn-chip">{{ initials(person.fullName) }}</span>
                 <span>{{ person.fullName }}</span>

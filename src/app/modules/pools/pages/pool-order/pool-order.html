@@ -206,7 +206,7 @@
                       </tr>
                     </thead>
                     <tbody>
-                      @for (turn of visibleTurns(); track turn.participantId) {
+                      @for (turn of visibleTurns(); track turn.participantPublicId) {
                         <tr [class.hrr-current-month-row]="stateOf(turn) === 'CURRENT'">
                           <td>
                             <span

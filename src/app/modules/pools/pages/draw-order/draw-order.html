@@ -85,9 +85,6 @@
                     </div>
 
                     @if (form.controls.organizerFirst.value) {
-                      <!-- Puente temporal: como el organizador se une por el enlace igual
-                           que todos, la app no sabe cuál de las filas es él. Desaparece
-                           cuando exista la identificación por código de gestión. -->
                       <div class="mt-3">
                         <label for="organizerParticipantId" class="form-label fs-7 fw-semibold">
                           ¿Cuál de la lista eres tú?
@@ -100,8 +97,8 @@
                           formControlName="organizerParticipantId"
                         >
                           <option value="">Elige tu nombre…</option>
-                          @for (person of participants(); track person.participantId) {
-                            <option [value]="person.participantId">{{ person.fullName }}</option>
+                          @for (person of participants(); track person.publicId) {
+                            <option [value]="person.publicId">{{ person.fullName }}</option>
                           }
                         </select>
                         @if (
@@ -170,7 +167,7 @@
               </div>
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush hrr-draw-result">
-                  @for (turn of revealed(); track turn.participantId) {
+                  @for (turn of revealed(); track turn.participantPublicId) {
                     <li class="list-group-item d-flex align-items-center gap-3">
                       <span
                         class="hrr-turn-chip hrr-turn-chip-sm"

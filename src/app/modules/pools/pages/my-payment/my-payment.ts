@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
-import { PaymentRes } from '@app/models/payment-res';
+import { MyPaymentRes } from '@app/models/get-my-payments-res';
 import {
   ParticipantIdentity,
   ParticipantSession
@@ -27,7 +27,7 @@ export class MyPayment implements OnInit {
 
   protected readonly pool = signal<GetPoolRes | null>(null);
   protected readonly participants = signal<ParticipantRes[]>([]);
-  protected readonly payments = signal<PaymentRes[]>([]);
+  protected readonly payments = signal<MyPaymentRes[]>([]);
 
   private readonly order = signal<GetOrderRes | null>(null);
 
@@ -47,7 +47,7 @@ export class MyPayment implements OnInit {
 
   /** Este mes me toca cobrar a mí, así que no pago cuota. */
   protected readonly iCollectThisMonth = computed(
-    () => this.currentTurn()?.participantId === this.identity()?.participantId
+    () => this.currentTurn()?.participantPublicId === this.identity()?.participantPublicId
   );
 
   /** Mi cuota del mes en curso, si ya la he marcado. */
@@ -84,7 +84,7 @@ export class MyPayment implements OnInit {
   /** Recuerda con qué participante se está usando la porra. */
   protected chooseIdentity(person: ParticipantRes): void {
     const identity: ParticipantIdentity = {
-      participantId: person.participantId,
+      participantPublicId: person.publicId,
       fullName: person.fullName
     };
 
@@ -110,11 +110,15 @@ export class MyPayment implements OnInit {
     this.sending.set(true);
     this.errorMessage.set(null);
 
-    this.pools.markPaid(this.poolId(), this.currentMonth(), person.participantId).subscribe({
+    const month = this.currentMonth();
+
+    this.pools
+      .markPaid(this.poolId(), { participantPublicId: person.participantPublicId, month })
+      .subscribe({
       next: (payment) => {
         this.payments.update((all) => [
           ...all.filter((one) => one.month !== payment.month),
-          payment
+          { month: payment.month, marked: payment.marked, confirmed: false }
         ]);
         this.sending.set(false);
       },
@@ -128,8 +132,8 @@ export class MyPayment implements OnInit {
   /** Estado de mi cuota en un mes ya pasado. */
   protected paymentStateOf(month: string): 'COLLECTED' | 'CONFIRMED' | 'MARKED' | 'UNPAID' {
     if (
-      this.turns().find((turn) => turn.month === month)?.participantId ===
-      this.identity()?.participantId
+      this.turns().find((turn) => turn.month === month)?.participantPublicId ===
+      this.identity()?.participantPublicId
     ) {
       return 'COLLECTED';
     }
@@ -147,21 +151,14 @@ export class MyPayment implements OnInit {
     return this.turns().find((turn) => turn.month === month)?.fullName ?? '';
   }
 
-  /** Texto del día límite de pago, a partir del código del alta. */
+  /** Texto del día límite de pago */
   protected dueDayLabel(): string {
-    switch (this.pool()?.paymentDueDay) {
-      case 'DAY_5':
-        return 'el día 5 de cada mes';
-      case 'DAY_15':
-        return 'el día 15 de cada mes';
-      case 'LAST_DAY':
-        return 'el último día del mes';
-      default:
-        return 'el día 10 de cada mes';
-    }
+    const dueDay = this.pool()?.paymentDueDay;
+
+    return dueDay ? `el día ${dueDay} de cada mes` : 'a lo largo del mes';
   }
 
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 
@@ -218,7 +215,7 @@ export class MyPayment implements OnInit {
       return;
     }
 
-    this.pools.getMyPayments(this.poolId(), person.participantId).subscribe({
+    this.pools.getMyPayments(this.poolId(), person.participantPublicId).subscribe({
       next: (payments) => this.payments.set(payments)
     });
   }

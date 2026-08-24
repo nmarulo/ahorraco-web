@@ -103,7 +103,7 @@ export class PoolOrder implements OnInit {
       return null;
     }
 
-    return this.turns().find((turn) => turn.participantId === me.participantId) ?? null;
+    return this.turns().find((turn) => turn.participantPublicId === me.participantPublicId) ?? null;
   });
 
   /**
@@ -117,7 +117,7 @@ export class PoolOrder implements OnInit {
     }
 
     return this.turns().filter(
-      (turn) => turn.month >= this.currentMonth() && turn.participantId !== me.participantId
+      (turn) => turn.month >= this.currentMonth() && turn.participantPublicId !== me.participantPublicId
     ).length;
   });
 
@@ -142,7 +142,7 @@ export class PoolOrder implements OnInit {
   }
 
   protected isMe(turn: TurnRes): boolean {
-    return turn.participantId === this.identity()?.participantId;
+    return turn.participantPublicId === this.identity()?.participantPublicId;
   }
 
   /** En qué punto está un turno respecto al mes en curso. */
@@ -159,7 +159,7 @@ export class PoolOrder implements OnInit {
     this.filter.set(selected);
   }
 
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 

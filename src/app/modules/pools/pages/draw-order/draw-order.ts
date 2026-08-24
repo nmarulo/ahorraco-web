@@ -114,7 +114,7 @@ export class DrawOrder implements OnInit {
     });
   }
 
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 
@@ -212,7 +212,7 @@ export class DrawOrder implements OnInit {
 
     return {
       organizerFirst: values.organizerFirst,
-      ...(values.organizerFirst ? { organizerParticipantId: values.organizerParticipantId } : {})
+      ...(values.organizerFirst ? { organizerPublicId: values.organizerParticipantId } : {})
     };
   }
 

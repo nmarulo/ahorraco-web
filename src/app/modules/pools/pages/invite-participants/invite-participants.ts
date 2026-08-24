@@ -4,18 +4,20 @@ import { RouterLink } from '@angular/router';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-invite-participants',
   imports: [RouterLink],
   templateUrl: './invite-participants.html',
-  styleUrl: './invite-participants.css'
+  styleUrl: './invite-participants.css',
 })
 export class InviteParticipants implements OnInit {
   private static readonly PERCENT = 100;
 
   private readonly pools = inject(PoolsService);
   private readonly document = inject(DOCUMENT);
+  private readonly organizer = inject(OrganizerSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly poolId = input.required<string>();
@@ -44,7 +46,6 @@ export class InviteParticipants implements OnInit {
     return Math.round((this.joinedCount() / total) * InviteParticipants.PERCENT);
   });
 
-  /** Enlace completo que el organizador pega en WhatsApp. */
   protected readonly invitationLink = computed(() => {
     const token = this.pool()?.invitationToken;
     if (!token) {
@@ -54,7 +55,6 @@ export class InviteParticipants implements OnInit {
     return `${this.document.location.origin}/join/${token}`;
   });
 
-  /** Abre WhatsApp con el mensaje escrito; el envío lo hace la persona. */
   protected readonly whatsappLink = computed(() => {
     const pool = this.pool();
     if (!pool) {
@@ -69,11 +69,18 @@ export class InviteParticipants implements OnInit {
   });
 
   /** El sorteo necesita que estén todos dentro. */
+  protected readonly isOrganizer = computed(() => this.organizer.get(this.poolId()) !== null);
+
   protected readonly everyoneJoined = computed(
-    () => this.pool() !== null && this.remaining() === 0
+    () => this.pool() !== null && this.remaining() === 0,
   );
 
   ngOnInit(): void {
+    if (!this.isOrganizer()) {
+      this.loading.set(false);
+      return;
+    }
+
     this.load();
   }
 
@@ -90,7 +97,7 @@ export class InviteParticipants implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -124,7 +131,7 @@ export class InviteParticipants implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -138,8 +145,6 @@ export class InviteParticipants implements OnInit {
       await navigator.clipboard.writeText(text);
       return true;
     } catch {
-      // El portapapeles falla en contextos no seguros; el texto se ve en
-      // pantalla y se puede seleccionar a mano.
       return false;
     }
   }

@@ -182,14 +182,14 @@
                         <tr [class.hrr-current-month-row]="turn.month === currentMonth()">
                           <td>{{ toDate(turn.month) | date: 'MMMM \'de\' y' }}</td>
                           <td class="d-none d-md-table-cell text-secondary">
-                            @if (turn.participantId === me.participantId) {
+                            @if (turn.participantPublicId === me.participantPublicId) {
                               Tú
                             } @else {
                               {{ collectorOf(turn.month) }}
                             }
                           </td>
                           <td class="text-end">
-                            @if (turn.participantId === me.participantId) {
+                            @if (turn.participantPublicId === me.participantPublicId) {
                               —
                             } @else {
                               {{ currentPool.monthlyFee | number: '1.0-2' }} €
@@ -279,7 +279,7 @@
               </div>
               <div class="card-body p-0 pt-3">
                 <ul class="list-group list-group-flush">
-                  @for (person of participants(); track person.participantId) {
+                  @for (person of participants(); track person.publicId) {
                     <li class="list-group-item p-0">
                       <button
                         type="button"

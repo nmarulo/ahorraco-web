@@ -12,6 +12,18 @@
         {{ message }}
         <a routerLink="/create-pool" class="alert-link ms-1">Crear una porra</a>
       </div>
+    } @else if (!isOrganizer()) {
+      <div class="card card-warning card-outline hrr-fade-in">
+        <div class="card-body">
+          <p class="fw-semibold mb-1">
+            <i class="bi bi-key me-1"></i> Esta pantalla es solo del organizador
+          </p>
+          <p class="text-secondary fs-7 mb-0">
+            Hace falta el código de gestión de la porra, y este navegador no lo tiene guardado.
+            Si eres el organizador, ábrela desde el navegador donde la creaste.
+          </p>
+        </div>
+      </div>
     } @else if (pool(); as currentPool) {
       <div class="row">
         <div class="col-lg-5">
@@ -138,14 +150,16 @@
                   <thead>
                     <tr>
                       <th>Participante</th>
-                      <th class="d-none d-md-table-cell">
-                        Teléfono
-                        <span class="text-secondary fw-normal fs-7">(opcional)</span>
-                      </th>
+                      @if (isOrganizer()) {
+                        <th class="d-none d-md-table-cell">
+                          Teléfono
+                          <span class="text-secondary fw-normal fs-7">(opcional)</span>
+                        </th>
+                      }
                     </tr>
                   </thead>
                   <tbody>
-                    @for (person of participants(); track person.participantId) {
+                    @for (person of participants(); track person.publicId) {
                       <tr>
                         <td>
                           <span class="hrr-turn-chip hrr-turn-chip-sm me-2">
@@ -153,13 +167,15 @@
                           </span>
                           {{ person.fullName }}
                         </td>
-                        <td class="d-none d-md-table-cell text-secondary">
-                          @if (person.phone) {
-                            {{ person.phone }}
-                          } @else {
-                            <span class="fst-italic fs-7">Sin teléfono</span>
-                          }
-                        </td>
+                        @if (isOrganizer()) {
+                          <td class="d-none d-md-table-cell text-secondary">
+                            @if (person.phone) {
+                              {{ person.phone }}
+                            } @else {
+                              <span class="fst-italic fs-7">Sin teléfono</span>
+                            }
+                          </td>
+                        }
                       </tr>
                     }
                   </tbody>

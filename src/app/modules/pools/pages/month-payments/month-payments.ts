@@ -4,9 +4,9 @@ import { RouterLink } from '@angular/router';
 
 import { GetOrderRes } from '@app/models/get-order-res';
 import { GetPoolRes } from '@app/models/get-pool-res';
-import { ParticipantRes } from '@app/models/participant-res';
-import { PaymentRes } from '@app/models/payment-res';
+import { MonthPaymentRes } from '@app/models/get-month-payments-res';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-month-payments',
@@ -18,13 +18,13 @@ export class MonthPayments implements OnInit {
   private static readonly PERCENT = 100;
 
   private readonly pools = inject(PoolsService);
+  private readonly organizer = inject(OrganizerSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly poolId = input.required<string>();
 
   protected readonly pool = signal<GetPoolRes | null>(null);
-  protected readonly participants = signal<ParticipantRes[]>([]);
-  protected readonly payments = signal<PaymentRes[]>([]);
+  protected readonly payments = signal<MonthPaymentRes[]>([]);
 
   private readonly order = signal<GetOrderRes | null>(null);
 
@@ -37,6 +37,8 @@ export class MonthPayments implements OnInit {
   protected readonly loading = signal(true);
   protected readonly confirming = signal<string | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
+
+  protected readonly isOrganizer = computed(() => this.organizer.get(this.poolId()) !== null);
 
   protected readonly drawn = computed(() => this.turns().length > 0);
 
@@ -83,6 +85,11 @@ export class MonthPayments implements OnInit {
   );
 
   ngOnInit(): void {
+    if (!this.isOrganizer()) {
+      this.loading.set(false);
+      return;
+    }
+
     this.load();
   }
 
@@ -101,10 +108,19 @@ export class MonthPayments implements OnInit {
     this.confirming.set(participantId);
     this.errorMessage.set(null);
 
-    this.pools.confirmReceived(this.poolId(), this.selectedMonth(), participantId).subscribe({
+    this.pools
+      .confirmReceived(this.poolId(), {
+        participantPublicId: participantId,
+        month: this.selectedMonth()
+      })
+      .subscribe({
       next: (payment) => {
         this.payments.update((all) =>
-          all.map((one) => (one.participantId === payment.participantId ? payment : one))
+          all.map((one) =>
+            one.participantPublicId === payment.participantPublicId
+              ? { ...one, marked: payment.marked, confirmed: payment.confirmed }
+              : one
+          )
         );
         this.confirming.set(null);
       },
@@ -115,14 +131,7 @@ export class MonthPayments implements OnInit {
     });
   }
 
-  /** Nombre de un participante a partir de su identificador. */
-  protected nameOf(participantId: string): string {
-    return (
-      this.participants().find((person) => person.participantId === participantId)?.fullName ?? ''
-    );
-  }
-
-  /** Convierte un `AAAA-MM` en fecha, para poder darle formato en la vista. */
+  /** Convierte un `AAAA-MM-DD` en fecha, para poder darle formato en la vista. */
   protected toDate(month: string): Date {
     const [year, monthNumber] = month.split('-').map(Number);
 
@@ -155,10 +164,6 @@ export class MonthPayments implements OnInit {
 
   /** Segunda parte de la carga. */
   private loadRest(): void {
-    this.pools.getParticipants(this.poolId()).subscribe({
-      next: (participants) => this.participants.set(participants)
-    });
-
     this.pools.getOrder(this.poolId()).subscribe({
       next: (order) => {
         this.order.set(order);
@@ -180,7 +185,7 @@ export class MonthPayments implements OnInit {
 
   /** Cuotas del mes elegido. */
   private loadPayments(): void {
-    this.pools.getPayments(this.poolId(), this.selectedMonth()).subscribe({
+    this.pools.getMonthPayments(this.poolId(), this.selectedMonth()).subscribe({
       next: (payments) => this.payments.set(payments),
       error: (error: Error) => this.errorMessage.set(error.message)
     });
