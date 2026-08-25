@@ -25,7 +25,6 @@ export const routes: Routes = [
         (m) => m.OrganizerAccess
       )
   },
-  // Vista simplificada: también va fuera del armazón, con el `<body>` desnudo.
   {
     path: 'pools/:poolId/simple',
     title: 'Ahorraco · Vista sencilla',
