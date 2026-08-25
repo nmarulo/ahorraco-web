@@ -149,20 +149,19 @@
                   @if (unresolved() > 0) {
                     <span class="badge text-bg-warning">{{ unresolved() }} por resolver</span>
                   }
-                  @if (openMonths().length > 1) {
-                    <select
-                      class="form-select form-select-sm w-auto"
-                      aria-label="Mes que se está mirando"
-                      [value]="selectedMonth()"
-                      (change)="selectMonth($any($event.target).value)"
-                    >
-                      @for (turn of openMonths(); track turn.month) {
-                        <option [value]="turn.month">
-                          {{ turn.month | monthDate: 'MMMM \'de\' y' }}
-                        </option>
-                      }
-                    </select>
-                  }
+                  <select
+                    class="form-select form-select-sm w-auto"
+                    aria-label="Mes que se está mirando"
+                    [value]="selectedMonth()"
+                    [disabled]="openMonths().length <= 1"
+                    (change)="selectMonth($any($event.target).value)"
+                  >
+                    @for (turn of openMonths(); track turn.month) {
+                      <option [value]="turn.month">
+                        {{ turn.month | monthDate: 'MMMM \'de\' y' }}
+                      </option>
+                    }
+                  </select>
                 </div>
               </div>
 
