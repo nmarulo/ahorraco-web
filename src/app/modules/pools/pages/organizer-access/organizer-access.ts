@@ -7,6 +7,7 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
+import { SelectedPoolSession } from '@app/services/session/selected-pool-session.service';
 
 /**
  * Página accesible desde `/organizer-access` y desde `/pools/:poolId/organizer-access`.
@@ -28,6 +29,7 @@ export class OrganizerAccess implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
   private readonly organizer = inject(OrganizerSession);
+  private readonly selectedPool = inject(SelectedPoolSession);
 
   /**
    * Si no se indica se buscara usando el código de invitación.
@@ -105,6 +107,7 @@ export class OrganizerAccess implements OnInit {
 
     this.pools.getPoolByInvitation(token).subscribe({
       next: (pool) => {
+        this.selectedPool.select({ publicId: pool.publicId, name: pool.name });
         this.pool.set(pool);
         this.granted.set(this.organizer.get(pool.publicId) !== null);
         this.searchingPool.set(false);
@@ -170,6 +173,7 @@ export class OrganizerAccess implements OnInit {
 
     this.pools.getPool(poolId).subscribe({
       next: (pool) => {
+        this.selectedPool.select({ publicId: pool.publicId, name: pool.name });
         this.pool.set(pool);
         this.loading.set(false);
       },

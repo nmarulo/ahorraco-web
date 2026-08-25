@@ -9,6 +9,7 @@ import { CreatePoolReq } from '@app/models/create-pool-req';
 import { CodeMode } from '@app/modules/pools/models/code-mode';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
+import { SelectedPoolSession } from '@app/services/session/selected-pool-session.service';
 
 @Component({
   selector: 'app-create-pool',
@@ -31,6 +32,7 @@ export class CreatePool {
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
   private readonly organizer = inject(OrganizerSession);
+  private readonly selectedPool = inject(SelectedPoolSession);
   private readonly router = inject(Router);
 
   protected readonly minParticipants = CreatePool.MIN_PARTICIPANTS;
@@ -110,6 +112,7 @@ export class CreatePool {
     this.pools.createPool(this.buildRequest()).subscribe({
       next: (response) => {
         this.organizer.save(response.publicId, response.managementCode);
+        this.selectedPool.select({ publicId: response.publicId, name: this.previewName() });
         this.router.navigate(['/pools', response.publicId, 'invite']);
       },
       error: (error: Error) => {
