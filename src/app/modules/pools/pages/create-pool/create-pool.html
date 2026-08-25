@@ -8,274 +8,211 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-lg-7">
-        @if (result(); as created) {
-          <!--begin::Porra creada-->
-          <div class="card card-success card-outline hrr-fade-in">
-            <div class="card-header">
-              <h2 class="card-title fs-5 mb-0">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ previewName() }} ya existe
-              </h2>
-            </div>
-            <div class="card-body">
-              <p class="fw-semibold mb-1"><i class="bi bi-key me-1"></i> Tu código de gestión</p>
-              <p class="text-secondary fs-7">
-                Guárdalo: es lo único que te identifica como organizador cuando abras la URL del
-                grupo. Con él marcas pagos y gestionas la porra.
-              </p>
+        <!--begin::Formulario-->
+        <div class="card card-primary card-outline hrr-fade-in">
+          <div class="card-header">
+            <h2 class="card-title fs-5 mb-0">
+              <i class="bi bi-plus-square me-1"></i> Datos de la porra
+            </h2>
+          </div>
 
-              <div class="input-group mb-3">
+          <form [formGroup]="form" (ngSubmit)="create()">
+            <div class="card-body">
+              <div class="mb-3">
+                <label for="name" class="form-label">Nombre de la porra</label>
                 <input
                   type="text"
-                  class="form-control hrr-link-box"
-                  [value]="created.managementCode"
-                  aria-label="Código de gestión"
-                  readonly
+                  id="name"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid(form.controls.name)"
+                  formControlName="name"
+                  placeholder="Por ejemplo: Porra 2026"
                 />
-                <button class="btn btn-outline-secondary" type="button" (click)="copyCode()">
-                  <i class="bi bi-clipboard me-1"></i> Copiar
-                </button>
+                <div class="form-text">Así la verán todos los participantes.</div>
+                @if (isInvalid(form.controls.name)) {
+                  <div class="invalid-feedback d-block">Ponle un nombre a la porra.</div>
+                }
               </div>
 
-              @if (copied()) {
-                <p class="text-success fs-7" role="status">
-                  <i class="bi bi-check2 me-1"></i> Código copiado al portapapeles.
-                </p>
-              }
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="monthlyFee" class="form-label">Cuota mensual</label>
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      id="monthlyFee"
+                      class="form-control"
+                      [class.is-invalid]="isInvalid(form.controls.monthlyFee)"
+                      formControlName="monthlyFee"
+                      min="1"
+                    />
+                    <span class="input-group-text">€</span>
+                  </div>
+                  <div class="form-text">La misma para todos.</div>
+                  @if (isInvalid(form.controls.monthlyFee)) {
+                    <div class="invalid-feedback d-block">La cuota tiene que ser de 1 € o más.</div>
+                  }
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="numParticipants" class="form-label">Número de participantes</label>
+                  <div class="input-group">
+                    <input
+                      type="number"
+                      id="numParticipants"
+                      class="form-control"
+                      [class.is-invalid]="isInvalid(form.controls.numParticipants)"
+                      formControlName="numParticipants"
+                      [min]="minParticipants"
+                      [max]="maxParticipants"
+                    />
+                    <span class="input-group-text">personas</span>
+                  </div>
+                  <div class="form-text">Cada participante cobra un mes: define la duración.</div>
+                  @if (isInvalid(form.controls.numParticipants)) {
+                    <div class="invalid-feedback d-block">
+                      Entre {{ minParticipants }} y {{ maxParticipants }} participantes.
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="startDate" class="form-label">Mes de inicio</label>
+                  <input
+                    type="month"
+                    id="startDate"
+                    class="form-control"
+                    [class.is-invalid]="isInvalid(form.controls.startDate)"
+                    [min]="minStartMonth"
+                    formControlName="startDate"
+                  />
+                  @if (isInvalid(form.controls.startDate)) {
+                    <div class="invalid-feedback d-block">
+                      @if (form.controls.startDate.hasError('pastMonth')) {
+                        La porra no puede empezar en un mes que ya ha pasado.
+                      } @else {
+                        Elige el mes en que arranca.
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="paymentDueDay" class="form-label">Día límite de pago</label>
+                  <select
+                    id="paymentDueDay"
+                    class="form-select"
+                    formControlName="paymentDueDay"
+                    [class.is-invalid]="isInvalid(form.controls.paymentDueDay)"
+                  >
+                    <option [ngValue]="5">Día 5 de cada mes</option>
+                    <option [ngValue]="10">Día 10 de cada mes</option>
+                    <option [ngValue]="15">Día 15 de cada mes</option>
+                    <option [ngValue]="20">Día 20 de cada mes</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="notes" class="form-label">
+                  Notas para el grupo
+                  <span class="text-secondary fw-normal">(opcional)</span>
+                </label>
+                <textarea
+                  id="notes"
+                  class="form-control"
+                  rows="2"
+                  formControlName="notes"
+                  placeholder="Por ejemplo: se paga por Bizum al número del organizador."
+                ></textarea>
+              </div>
+
+              <hr />
+
+              <!--begin::Código de gestión del organizador-->
+              <p class="fw-semibold mb-1"><i class="bi bi-key me-1"></i> Tu código de gestión</p>
+              <p class="text-secondary fs-7">
+                No hay usuarios ni contraseñas. Este código es lo que te identifica como
+                organizador cuando abras la URL del grupo, así que guárdalo: con él marcas pagos y
+                gestionas la porra.
+              </p>
+
+              <div class="mb-3">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="generatedCode"
+                    value="GENERATED"
+                    formControlName="codeMode"
+                  />
+                  <label class="form-check-label" for="generatedCode">
+                    Que lo genere Ahorraco por mí
+                  </label>
+                </div>
+                <div class="form-text ms-4 mb-3">
+                  Lo genera el servidor al crear la porra. Lo verás enseguida, en la pantalla de
+                  invitar participantes.
+                </div>
+
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    id="customCode"
+                    value="CUSTOM"
+                    formControlName="codeMode"
+                  />
+                  <label class="form-check-label" for="customCode">Prefiero elegirlo yo</label>
+                </div>
+                <input
+                  type="text"
+                  id="customCodeValue"
+                  class="form-control mt-2"
+                  [class.is-invalid]="isInvalid(form.controls.customCode)"
+                  formControlName="customCode"
+                  aria-label="Código de gestión propio"
+                  placeholder="Por ejemplo: porra-familia-26"
+                />
+                @if (isInvalid(form.controls.customCode)) {
+                  <div class="invalid-feedback d-block">
+                    Escribe un código de 4 caracteres o más.
+                  </div>
+                }
+              </div>
+              <!--end::Código de gestión-->
 
               <div class="alert alert-info mb-0" role="alert">
                 <i class="bi bi-info-circle-fill me-2"></i>
-                El siguiente paso es repartir el enlace de invitación para que se una la gente.
+                Ahorraco <strong>no mueve dinero</strong>. Tú recibes las cuotas y entregas el bote
+                al beneficiario del mes fuera de la app (Bizum, transferencia o efectivo); aquí
+                solo se registra quién ha pagado.
               </div>
             </div>
-            <div class="card-footer d-flex justify-content-between">
-              <button type="button" class="btn btn-outline-secondary" (click)="startAnother()">
-                <i class="bi bi-arrow-counterclockwise me-1"></i> Crear otra porra
+
+            @if (errorMessage(); as message) {
+              <div class="card-body pt-0">
+                <div class="alert alert-danger mb-0" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
+                </div>
+              </div>
+            }
+
+            <div class="card-footer text-end">
+              <button type="submit" class="btn btn-primary" [disabled]="sending()">
+                @if (sending()) {
+                  <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                  Creando…
+                } @else {
+                  Crear la porra <i class="bi bi-arrow-right ms-1"></i>
+                }
               </button>
-              <a [routerLink]="['/pools', created.publicId, 'invite']" class="btn btn-primary">
-                Invitar participantes <i class="bi bi-arrow-right ms-1"></i>
-              </a>
             </div>
-          </div>
-          <!--end::Porra creada-->
-        } @else {
-          <!--begin::Formulario-->
-          <div class="card card-primary card-outline hrr-fade-in">
-            <div class="card-header">
-              <h2 class="card-title fs-5 mb-0">
-                <i class="bi bi-plus-square me-1"></i> Datos de la porra
-              </h2>
-            </div>
-
-            <form [formGroup]="form" (ngSubmit)="create()">
-              <div class="card-body">
-                <div class="mb-3">
-                  <label for="name" class="form-label">Nombre de la porra</label>
-                  <input
-                    type="text"
-                    id="name"
-                    class="form-control"
-                    [class.is-invalid]="isInvalid(form.controls.name)"
-                    formControlName="name"
-                    placeholder="Por ejemplo: Porra 2026"
-                  />
-                  <div class="form-text">Así la verán todos los participantes.</div>
-                  @if (isInvalid(form.controls.name)) {
-                    <div class="invalid-feedback d-block">Ponle un nombre a la porra.</div>
-                  }
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="monthlyFee" class="form-label">Cuota mensual</label>
-                    <div class="input-group">
-                      <input
-                        type="number"
-                        id="monthlyFee"
-                        class="form-control"
-                        [class.is-invalid]="isInvalid(form.controls.monthlyFee)"
-                        formControlName="monthlyFee"
-                        min="1"
-                      />
-                      <span class="input-group-text">€</span>
-                    </div>
-                    <div class="form-text">La misma para todos.</div>
-                    @if (isInvalid(form.controls.monthlyFee)) {
-                      <div class="invalid-feedback d-block">La cuota tiene que ser de 1 € o más.</div>
-                    }
-                  </div>
-
-                  <div class="col-md-6 mb-3">
-                    <label for="numParticipants" class="form-label">Número de participantes</label>
-                    <div class="input-group">
-                      <input
-                        type="number"
-                        id="numParticipants"
-                        class="form-control"
-                        [class.is-invalid]="isInvalid(form.controls.numParticipants)"
-                        formControlName="numParticipants"
-                        [min]="minParticipants"
-                        [max]="maxParticipants"
-                      />
-                      <span class="input-group-text">personas</span>
-                    </div>
-                    <div class="form-text">Cada participante cobra un mes: define la duración.</div>
-                    @if (isInvalid(form.controls.numParticipants)) {
-                      <div class="invalid-feedback d-block">
-                        Entre {{ minParticipants }} y {{ maxParticipants }} participantes.
-                      </div>
-                    }
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="startDate" class="form-label">Mes de inicio</label>
-                    <input
-                      type="month"
-                      id="startDate"
-                      class="form-control"
-                      [class.is-invalid]="isInvalid(form.controls.startDate)"
-                      [min]="minStartMonth"
-                      formControlName="startDate"
-                    />
-                    @if (isInvalid(form.controls.startDate)) {
-                      <div class="invalid-feedback d-block">
-                        @if (form.controls.startDate.hasError('pastMonth')) {
-                          La porra no puede empezar en un mes que ya ha pasado.
-                        } @else {
-                          Elige el mes en que arranca.
-                        }
-                      </div>
-                    }
-                  </div>
-
-                  <div class="col-md-6 mb-3">
-                    <label for="paymentDueDay" class="form-label">Día límite de pago</label>
-                    <select
-                      id="paymentDueDay"
-                      class="form-select"
-                      formControlName="paymentDueDay"
-                      [class.is-invalid]="isInvalid(form.controls.paymentDueDay)"
-                    >
-                      <option [ngValue]="5">Día 5 de cada mes</option>
-                      <option [ngValue]="10">Día 10 de cada mes</option>
-                      <option [ngValue]="15">Día 15 de cada mes</option>
-                      <option [ngValue]="20">Día 20 de cada mes</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="mb-3">
-                  <label for="notes" class="form-label">
-                    Notas para el grupo
-                    <span class="text-secondary fw-normal">(opcional)</span>
-                  </label>
-                  <textarea
-                    id="notes"
-                    class="form-control"
-                    rows="2"
-                    formControlName="notes"
-                    placeholder="Por ejemplo: se paga por Bizum al número del organizador."
-                  ></textarea>
-                </div>
-
-                <hr />
-
-                <!--begin::Código de gestión del organizador-->
-                <p class="fw-semibold mb-1"><i class="bi bi-key me-1"></i> Tu código de gestión</p>
-                <p class="text-secondary fs-7">
-                  No hay usuarios ni contraseñas. Este código es lo que te identifica como
-                  organizador cuando abras la URL del grupo, así que guárdalo: con él marcas pagos y
-                  gestionas la porra.
-                </p>
-
-                <div class="mb-3">
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="radio"
-                      id="generatedCode"
-                      value="GENERATED"
-                      formControlName="codeMode"
-                    />
-                    <label class="form-check-label" for="generatedCode">
-                      Que lo genere Ahorraco por mí
-                    </label>
-                  </div>
-                  <div class="input-group mt-2 mb-3">
-                    <input
-                      type="text"
-                      class="form-control hrr-link-box"
-                      [value]="suggestedCode()"
-                      aria-label="Código de gestión propuesto"
-                      readonly
-                    />
-                    <button
-                      class="btn btn-outline-secondary"
-                      type="button"
-                      (click)="regenerateCode()"
-                    >
-                      <i class="bi bi-arrow-repeat me-1"></i> Otro
-                    </button>
-                  </div>
-
-                  <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="radio"
-                      id="customCode"
-                      value="CUSTOM"
-                      formControlName="codeMode"
-                    />
-                    <label class="form-check-label" for="customCode">Prefiero elegirlo yo</label>
-                  </div>
-                  <input
-                    type="text"
-                    id="customCodeValue"
-                    class="form-control mt-2"
-                    [class.is-invalid]="isInvalid(form.controls.customCode)"
-                    formControlName="customCode"
-                    aria-label="Código de gestión propio"
-                    placeholder="Por ejemplo: porra-familia-26"
-                  />
-                  @if (isInvalid(form.controls.customCode)) {
-                    <div class="invalid-feedback d-block">
-                      Escribe un código de 4 caracteres o más.
-                    </div>
-                  }
-                </div>
-                <!--end::Código de gestión-->
-
-                <div class="alert alert-info mb-0" role="alert">
-                  <i class="bi bi-info-circle-fill me-2"></i>
-                  Ahorraco <strong>no mueve dinero</strong>. Tú recibes las cuotas y entregas el bote
-                  al beneficiario del mes fuera de la app (Bizum, transferencia o efectivo); aquí
-                  solo se registra quién ha pagado.
-                </div>
-              </div>
-
-              @if (errorMessage(); as message) {
-                <div class="card-body pt-0">
-                  <div class="alert alert-danger mb-0" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ message }}
-                  </div>
-                </div>
-              }
-
-              <div class="card-footer text-end">
-                <button type="submit" class="btn btn-primary" [disabled]="sending()">
-                  @if (sending()) {
-                    <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-                    Creando…
-                  } @else {
-                    Crear la porra <i class="bi bi-arrow-right ms-1"></i>
-                  }
-                </button>
-              </div>
-            </form>
-          </div>
-          <!--end::Formulario-->
-        }
+          </form>
+        </div>
+        <!--end::Formulario-->
       </div>
 
       <div class="col-lg-5">
