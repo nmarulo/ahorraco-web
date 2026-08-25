@@ -16,6 +16,14 @@
             Hace falta el código de gestión de la porra, y este navegador no lo tiene guardado.
             Si eres el organizador, ábrela desde el navegador donde la creaste.
           </p>
+          <div class="d-grid mt-3">
+            <a
+              [routerLink]="['/pools', poolId(), 'organizer-access']"
+              class="btn btn-outline-primary btn-sm"
+            >
+              <i class="bi bi-key me-1"></i> Entrar como organizador
+            </a>
+          </div>
         </div>
       </div>
     } @else if (pool(); as currentPool) {

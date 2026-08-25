@@ -1,0 +1,253 @@
+<main class="login-box hrr-fade-in">
+  <div class="login-logo">
+    <span class="hrr-brand-icon"><i class="bi bi-piggy-bank-fill"></i></span>
+    <a routerLink="/create-pool" class="text-decoration-none"><b>Ahorra</b>co</a>
+  </div>
+
+  @if (pool(); as currentPool) {
+    <!--begin::La porra sobre la que se va a entrar-->
+    <div class="card mb-3">
+      <div class="card-body text-center py-3">
+        <p class="text-secondary fs-7 text-uppercase mb-1">Estás entrando en</p>
+        <h1 class="fs-5 mb-1">{{ currentPool.name }}</h1>
+        <p class="text-secondary fs-7 mb-0">
+          {{ currentPool.numParticipants }} participantes ·
+          {{ currentPool.monthlyFee | number: '1.0-2' }} € al mes
+        </p>
+
+        @if (fromScratchWithoutPoolId()) {
+          <button
+            type="button"
+            class="btn btn-link btn-sm text-secondary mt-1"
+            (click)="searchAnotherPool()"
+          >
+            No es esta porra, buscar otra
+          </button>
+        }
+      </div>
+    </div>
+    <!--end::La porra sobre la que se va a entrar-->
+
+    @if (granted()) {
+      <!--begin::Acceso concedido-->
+      <div class="card hrr-fade-in">
+        <div class="card-body text-center">
+          <p class="fs-1 mb-2 text-success"><i class="bi bi-shield-check"></i></p>
+          <h2 class="fs-4 mb-2">Modo organizador activo</h2>
+          <p class="text-secondary mb-4">
+            Ahorraco ya sabe que eres <strong>el organizador</strong> de esta porra. Se queda
+            guardado en este dispositivo hasta que salgas.
+          </p>
+
+          <div class="d-grid gap-2">
+            <a
+              [routerLink]="['/pools', currentPool.publicId, 'invite']"
+              class="btn btn-success btn-lg"
+            >
+              <i class="bi bi-people me-1"></i> Ir a la porra
+            </a>
+            <a
+              [routerLink]="['/pools', currentPool.publicId, 'payments']"
+              class="btn btn-outline-secondary"
+            >
+              <i class="bi bi-check2-square me-1"></i> Pagos del mes
+            </a>
+            <button type="button" class="btn btn-link btn-sm text-secondary" (click)="signOut()">
+              Salir del modo organizador
+            </button>
+          </div>
+        </div>
+      </div>
+      <!--end::Acceso concedido-->
+    } @else {
+      <!--begin::Paso 2 · el código de gestión-->
+      <div class="card">
+        <div class="card-body login-card-body">
+          @if (fromScratchWithoutPoolId()) {
+            <p class="text-secondary fs-7 text-uppercase mb-1">Paso 2 de 2</p>
+          }
+          <p class="login-box-msg pb-2 pt-0">
+            <i class="bi bi-key-fill me-1"></i>
+            Escribe tu código de gestión para entrar como organizador.
+          </p>
+
+          @if (rejected()) {
+            <div class="alert alert-danger" role="alert">
+              <i class="bi bi-x-circle-fill me-2"></i>
+              Ese código no es el de esta porra. Revísalo y vuelve a intentarlo.
+            </div>
+          }
+
+          <form [formGroup]="organizerForm" (ngSubmit)="submit()">
+            <label for="managementCode" class="form-label">Código de gestión</label>
+            <input
+              type="text"
+              id="managementCode"
+              class="form-control hrr-code-field mb-1"
+              [class.hrr-is-invalid]="rejected()"
+              formControlName="managementCode"
+              placeholder="HRR-XXXXX"
+              autocomplete="off"
+              spellcheck="false"
+              [maxlength]="codeMaxLength"
+            />
+            <div class="form-text mb-3">
+              Da igual si lo escribes en mayúsculas o en minúsculas. Es el código que te dio
+              Ahorraco al crear la porra.
+            </div>
+
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="checking()">
+                @if (checking()) {
+                  <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                  Comprobando…
+                } @else {
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Entrar como organizador
+                }
+              </button>
+            </div>
+          </form>
+
+          <hr />
+
+          <p class="text-secondary fs-7 mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            <strong>¿No eres el organizador?</strong> No hace falta código: cualquiera del grupo
+            entra por la URL de la porra y elige su nombre de la lista.
+          </p>
+          <div class="d-grid mt-2">
+            <a
+              [routerLink]="['/pools', currentPool.publicId, 'order']"
+              class="btn btn-outline-secondary btn-sm"
+            >
+              Ver el orden de cobro
+            </a>
+          </div>
+        </div>
+      </div>
+      <!--end::Paso 2-->
+    }
+
+    <!--begin::Qué desbloquea el código-->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h2 class="card-title fs-6">
+          <i class="bi bi-unlock me-1"></i> Qué puedes hacer solo con el código
+        </h2>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item d-flex align-items-center gap-3">
+            <i class="bi bi-shuffle fs-5 text-secondary"></i>
+            <div class="flex-grow-1">
+              <p class="fw-semibold mb-0">Sortear el orden de cobro</p>
+              <p class="text-secondary fs-7 mb-0">Una sola vez, y no se puede deshacer</p>
+            </div>
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-3">
+            <i class="bi bi-check2-square fs-5 text-secondary"></i>
+            <div class="flex-grow-1">
+              <p class="fw-semibold mb-0">Dar las cuotas por recibidas</p>
+              <p class="text-secondary fs-7 mb-0">Tuyas o de cualquier participante</p>
+            </div>
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-3">
+            <i class="bi bi-megaphone fs-5 text-secondary"></i>
+            <div class="flex-grow-1">
+              <p class="fw-semibold mb-0">Generar el recordatorio del mes</p>
+              <p class="text-secondary fs-7 mb-0">Con los nombres de quien falta por pagar</p>
+            </div>
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-3">
+            <i class="bi bi-link-45deg fs-5 text-secondary"></i>
+            <div class="flex-grow-1">
+              <p class="fw-semibold mb-0">Ver el enlace de invitación</p>
+              <p class="text-secondary fs-7 mb-0">Y los teléfonos de quienes lo dejaron</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="card-footer bg-transparent">
+        <p class="text-secondary fs-7 mb-0">
+          <i class="bi bi-eye me-1"></i>
+          El resto de la porra —el orden, quién cobra este mes, marcar tu propia cuota— lo ve
+          cualquiera del grupo sin código.
+        </p>
+      </div>
+    </div>
+    <!--end::Qué desbloquea el código-->
+
+    @if (!granted()) {
+      <!--begin::Si lo has perdido-->
+      <div class="alert alert-secondary mt-3 mb-0" role="alert">
+        <p class="fw-semibold mb-1">
+          <i class="bi bi-question-circle me-1"></i> ¿Has perdido el código?
+        </p>
+        <p class="fs-7 mb-0">
+          No hay forma de recuperarlo desde aquí: no hay cuentas ni correo al que enviarlo. Búscalo
+          en la conversación donde lo guardaste al crear la porra.
+        </p>
+      </div>
+      <!--end::Si lo has perdido-->
+    }
+  } @else if (fromScratchWithoutPoolId()) {
+    <!--begin::Paso 1 · encontrar la porra-->
+    <div class="card">
+      <div class="card-body login-card-body">
+        <p class="text-secondary fs-7 text-uppercase mb-1">Paso 1 de 2</p>
+        <p class="login-box-msg pb-2 pt-0">
+          <i class="bi bi-search me-1"></i>
+          Primero hay que dar con la porra.
+        </p>
+
+        @if (notFoundPool()) {
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            No hay ninguna porra con ese código de invitación.
+          </div>
+        }
+
+        <form [formGroup]="poolForm" (ngSubmit)="searchPool()">
+          <label for="invitationToken" class="form-label">Código de invitación</label>
+          <input
+            type="text"
+            id="invitationToken"
+            class="form-control hrr-code-field mb-1"
+            [class.hrr-is-invalid]="notFoundPool()"
+            formControlName="invitationToken"
+            placeholder="XXXXXXXXXX"
+            autocomplete="off"
+            spellcheck="false"
+            [maxlength]="invitationMaxLength"
+          />
+          <div class="form-text mb-3">
+            Es el mismo código que repartiste al grupo, dentro del enlace de invitación. Puedes
+            pegar el enlace entero.
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="searchingPool()">
+              @if (searchingPool()) {
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                Buscando…
+              } @else {
+                <i class="bi bi-search me-1"></i> Buscar mi porra
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!--end::Paso 1-->
+  } @else if (loading()) {
+    <p class="text-secondary text-center" role="status">
+      <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+      Cargando la porra…
+    </p>
+  } @else {
+    <div class="alert alert-warning" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      {{ errorMessageAPI() }}
+    </div>
+  }
+</main>

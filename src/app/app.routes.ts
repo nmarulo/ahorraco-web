@@ -9,6 +9,22 @@ export const routes: Routes = [
     loadComponent: () =>
       import('@app/modules/pools/pages/join-pool/join-pool').then((m) => m.JoinPool)
   },
+  {
+    path: 'organizer-access',
+    title: 'Ahorraco · Entrar como organizador',
+    loadComponent: () =>
+      import('@app/modules/pools/pages/organizer-access/organizer-access').then(
+        (m) => m.OrganizerAccess
+      )
+  },
+  {
+    path: 'pools/:poolId/organizer-access',
+    title: 'Ahorraco · Entrar como organizador',
+    loadComponent: () =>
+      import('@app/modules/pools/pages/organizer-access/organizer-access').then(
+        (m) => m.OrganizerAccess
+      )
+  },
   // Vista simplificada: también va fuera del armazón, con el `<body>` desnudo.
   {
     path: 'pools/:poolId/simple',

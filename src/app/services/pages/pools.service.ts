@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
@@ -21,6 +21,7 @@ import { MarkPaidReq } from '@app/models/mark-paid-req';
 import { MarkPaidRes } from '@app/models/mark-paid-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { TurnRes } from '@app/models/turn-res';
+import { MANAGEMENT_CODE_HEADER } from '@app/shared/interceptor/management-code.interceptor';
 import { environment } from '@env/environment';
 
 /**
@@ -36,8 +37,16 @@ export class PoolsService {
     return this.http.post<CreatePoolRes>(PoolsService.BASE_URL, request);
   }
 
-  getPool(poolId: string): Observable<GetPoolRes> {
-    return this.http.get<GetPoolRes>(`${PoolsService.BASE_URL}/${poolId}`);
+  /**
+   * @param managementCode Solo lo manda la pantalla de acceso del organizador.
+   * El resto de se encarga el interceptor.
+   */
+  getPool(poolId: string, managementCode?: string): Observable<GetPoolRes> {
+    const options = managementCode
+      ? { headers: new HttpHeaders({ [MANAGEMENT_CODE_HEADER]: managementCode }) }
+      : {};
+
+    return this.http.get<GetPoolRes>(`${PoolsService.BASE_URL}/${poolId}`, options);
   }
 
   getPoolByInvitation(invitationToken: string): Observable<GetPoolInvitationRes> {
