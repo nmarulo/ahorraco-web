@@ -157,14 +157,12 @@
         </div>
 
         <div class="col-lg-6">
-          @if (revealed().length > 0) {
-            <!--begin::Orden resultante-->
-            <div class="card hrr-fade-in">
-              <div class="card-header">
-                <h2 class="card-title fs-5 mb-0">
-                  <i class="bi bi-list-ol me-1"></i> Orden de cobro
-                </h2>
-              </div>
+          <!--begin::Orden resultante-->
+          <div class="card hrr-fade-in">
+            <div class="card-header">
+              <h2 class="card-title fs-5 mb-0"><i class="bi bi-list-ol me-1"></i> Orden de cobro</h2>
+            </div>
+            @if (revealed().length > 0) {
               <div class="card-body p-0">
                 <ul class="list-group list-group-flush hrr-draw-result">
                   @for (turn of revealed(); track turn.participantPublicId) {
@@ -189,9 +187,19 @@
                   }
                 </ul>
               </div>
-            </div>
-            <!--end::Orden resultante-->
-          }
+            } @else {
+              <!--begin::Todavía sin sortear-->
+              <div class="card-body text-center text-secondary">
+                <p class="fs-2 mb-2"><i class="bi bi-hourglass-split"></i></p>
+                <p class="fw-semibold mb-1">Pendiente de sortear</p>
+                <p class="fs-7 mb-0">
+                  Aquí saldrá quién cobra cada mes, en cuanto se haga el sorteo.
+                </p>
+              </div>
+              <!--end::Todavía sin sortear-->
+            }
+          </div>
+          <!--end::Orden resultante-->
         </div>
       </div>
       <!--begin::Cómo funciona-->
