@@ -1,0 +1,48 @@
+<div class="card card-secondary card-outline hrr-fade-in">
+  <div class="card-header">
+    <h2 class="card-title fs-5 mb-0"><i class="bi bi-question-circle me-1"></i> Cómo funciona</h2>
+  </div>
+  <div class="card-body">
+    <div class="timeline">
+      <div>
+        <i class="timeline-icon bi bi-people text-bg-primary"></i>
+        <div class="timeline-item">
+          <h3 class="timeline-header no-border">Todos dentro</h3>
+          <div class="timeline-body">
+            El sorteo no se habilita hasta que las {{ numParticipants() }} personas han entrado por
+            el enlace.
+          </div>
+        </div>
+      </div>
+      <div>
+        <i class="timeline-icon bi bi-pin-angle text-bg-secondary"></i>
+        <div class="timeline-item">
+          <h3 class="timeline-header no-border">El organizador puede reservarse el primero</h3>
+          <div class="timeline-body">
+            Es opcional. Si lo activas, tu turno queda fuera del sorteo y el resto se reparte entre
+            los demás.
+          </div>
+        </div>
+      </div>
+      <div>
+        <i class="timeline-icon bi bi-dice-5 text-bg-warning"></i>
+        <div class="timeline-item">
+          <h3 class="timeline-header no-border">Se reparten los meses</h3>
+          <div class="timeline-body">
+            A cada participante le toca un mes distinto, sin repetir, empezando por
+            {{ startDate() | monthDate: 'MMMM \'de\' y' }}.
+          </div>
+        </div>
+      </div>
+      <div>
+        <i class="timeline-icon bi bi-flag text-bg-secondary"></i>
+        <div class="timeline-item">
+          <h3 class="timeline-header no-border">Arranca el primer mes</h3>
+          <div class="timeline-body">
+            Quien tenga el turno 1 cobra el primer bote en cuanto todos hayan pagado.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
