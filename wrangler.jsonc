@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ahorraco-web",
+  "compatibility_date": "2026-08-20",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "dist/ahorraco-web/browser",
+    "not_found_handling": "single-page-application"
+  }
+}
