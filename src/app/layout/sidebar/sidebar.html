@@ -13,6 +13,74 @@
       data-accordion="false"
       role="menu"
     >
+      @if (pool(); as currentPool) {
+        <li class="nav-header">{{ currentPool.name }}</li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'order']"
+            routerLinkActive="active"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-list-ol"></i>
+            <p>Orden de cobro</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'my-payment']"
+            routerLinkActive="active"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-cash-coin"></i>
+            <p>Mi pago del mes</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'payments']"
+            routerLinkActive="active"
+            [class.d-none]="!isOrganizer()"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-check2-square"></i>
+            <p>Pagos del mes</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'invite']"
+            routerLinkActive="active"
+            [class.d-none]="!isOrganizer()"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-person-plus"></i>
+            <p>Invitar participantes</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'draw']"
+            routerLinkActive="active"
+            [class.d-none]="!isOrganizer()"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-shuffle"></i>
+            <p>Sorteo del orden</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            [routerLink]="['/pools', currentPool.publicId, 'reminder']"
+            routerLinkActive="active"
+            [class.d-none]="!isOrganizer()"
+            class="nav-link"
+          >
+            <i class="nav-icon bi bi-megaphone"></i>
+            <p>Recordatorio manual</p>
+          </a>
+        </li>
+      }
+
       <li class="nav-header">GESTIÓN DE LA PORRA</li>
       <li class="nav-item">
         <a routerLink="/create-pool" routerLinkActive="active" class="nav-link">
