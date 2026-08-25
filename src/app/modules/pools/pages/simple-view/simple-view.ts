@@ -9,6 +9,7 @@ import { MyPaymentRes } from '@app/models/get-my-payments-res';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
+import { InitialsPipe } from '@app/shared/pipes/initials.pipe';
 import {
   ParticipantIdentity,
   ParticipantSession
@@ -16,7 +17,7 @@ import {
 
 @Component({
   selector: 'app-simple-view',
-  imports: [RouterLink, DecimalPipe, MonthDatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe, InitialsPipe],
   templateUrl: './simple-view.html',
   styleUrl: './simple-view.css'
 })
@@ -143,16 +144,6 @@ export class SimpleView implements OnInit {
         this.sending.set(false);
       }
     });
-  }
-
-  /** Iniciales con las que se representa a cada participante. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
   }
 
   /** Carga la porra y, encadenados, participantes, orden y mis cuotas. */

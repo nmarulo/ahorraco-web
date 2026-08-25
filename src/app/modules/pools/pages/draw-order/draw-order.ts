@@ -116,16 +116,6 @@ export class DrawOrder implements OnInit {
     });
   }
 
-  /** Iniciales con las que se representa a cada participante. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
-  }
-
   /** Carga la porra, quién se ha unido y si ya hay orden sorteado. */
   private load(): void {
     this.pools.getPool(this.poolId()).subscribe({

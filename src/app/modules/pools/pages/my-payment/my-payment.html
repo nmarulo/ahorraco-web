@@ -19,7 +19,7 @@
             <!--begin::Identidad sin login-->
             <div class="card hrr-fade-in">
               <div class="card-body d-flex flex-wrap align-items-center gap-3">
-                <span class="hrr-turn-chip">{{ initials(me.fullName) }}</span>
+                <span class="hrr-turn-chip">{{ me.fullName | initials }}</span>
                 <div class="flex-grow-1">
                   <p class="text-secondary fs-7 mb-0">Estás marcando el pago como</p>
                   <p class="fw-semibold mb-0">{{ me.fullName }}</p>
@@ -77,7 +77,7 @@
                 <div class="card-body text-center">
                   @if (currentTurn(); as turn) {
                     <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
-                      <span class="hrr-turn-chip hrr-is-current">{{ initials(turn.fullName) }}</span>
+                      <span class="hrr-turn-chip hrr-is-current">{{ turn.fullName | initials }}</span>
                       <div class="text-start">
                         <p class="text-secondary fs-7 mb-0">Este mes cobra</p>
                         <p class="fw-semibold mb-0">{{ turn.fullName }}</p>
@@ -287,7 +287,7 @@
                         (click)="chooseIdentity(person)"
                       >
                         <span class="hrr-turn-chip hrr-turn-chip-sm">
-                          {{ initials(person.fullName) }}
+                          {{ person.fullName | initials }}
                         </span>
                         <span class="flex-grow-1">{{ person.fullName }}</span>
                         <i class="bi bi-chevron-right text-secondary"></i>

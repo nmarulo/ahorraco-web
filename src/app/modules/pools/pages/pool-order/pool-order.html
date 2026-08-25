@@ -24,7 +24,7 @@
               <div class="card-body text-center">
                 @if (beneficiary(); as winner) {
                   <span class="hrr-turn-chip hrr-is-current mx-auto mb-3">
-                    {{ initials(winner.fullName) }}
+                    {{ winner.fullName | initials }}
                   </span>
                   <h3 class="fs-4 mb-1">{{ winner.fullName }}</h3>
                   <p class="text-secondary mb-3">

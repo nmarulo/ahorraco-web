@@ -29,7 +29,7 @@
         <div class="card mb-3">
           <div class="card-body text-center">
             <p class="text-secondary hrr-guide-text mb-2">Este mes cobra</p>
-            <span class="hrr-turn-chip hrr-is-current mb-2">{{ initials(turn.fullName) }}</span>
+            <span class="hrr-turn-chip hrr-is-current mb-2">{{ turn.fullName | initials }}</span>
             <p class="fs-3 fw-bold mb-0">{{ turn.fullName }}</p>
           </div>
         </div>
@@ -152,7 +152,7 @@
           <div class="d-grid gap-3">
             @for (person of participants(); track person.publicId) {
               <button type="button" class="hrr-name-button" (click)="chooseIdentity(person)">
-                <span class="hrr-turn-chip">{{ initials(person.fullName) }}</span>
+                <span class="hrr-turn-chip">{{ person.fullName | initials }}</span>
                 <span>{{ person.fullName }}</span>
               </button>
             }

@@ -75,7 +75,7 @@
 
                 @if (beneficiary(); as winner) {
                   <div class="d-flex align-items-center justify-content-center gap-2 text-secondary fs-7">
-                    <span class="hrr-turn-chip hrr-turn-chip-sm">{{ initials(winner.fullName) }}</span>
+                    <span class="hrr-turn-chip hrr-turn-chip-sm">{{ winner.fullName | initials }}</span>
                     Se entrega a {{ winner.fullName }}
                   </div>
                 }
@@ -188,7 +188,7 @@
                       <tr>
                         <td>
                           <span class="hrr-turn-chip hrr-turn-chip-sm me-2">
-                            {{ initials(payment.fullName) }}
+                            {{ payment.fullName | initials }}
                           </span>
                           {{ payment.fullName }}
                         </td>

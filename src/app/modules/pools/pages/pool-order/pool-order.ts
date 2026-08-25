@@ -8,6 +8,7 @@ import { TurnRes } from '@app/models/turn-res';
 import { TurnState } from '@app/modules/pools/models/turn-state';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
+import { InitialsPipe } from '@app/shared/pipes/initials.pipe';
 import {
   ParticipantIdentity,
   ParticipantSession
@@ -15,7 +16,7 @@ import {
 
 @Component({
   selector: 'app-pool-order',
-  imports: [RouterLink, DecimalPipe, MonthDatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe, InitialsPipe],
   templateUrl: './pool-order.html',
   styleUrl: './pool-order.css'
 })
@@ -158,16 +159,6 @@ export class PoolOrder implements OnInit {
   /** Cambia el filtro de la tabla. */
   protected filterBy(selected: TurnState | 'ALL'): void {
     this.filter.set(selected);
-  }
-
-  /** Iniciales con las que se representa a cada participante. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
   }
 
   /** Carga la porra y su orden de cobro. */

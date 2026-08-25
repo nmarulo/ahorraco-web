@@ -5,11 +5,12 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { HowItWorks } from '@app/modules/pools/components/how-it-works/how-it-works';
 import { PoolsService } from '@app/services/pages/pools.service';
+import { InitialsPipe } from '@app/shared/pipes/initials.pipe';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-invite-participants',
-  imports: [RouterLink, HowItWorks],
+  imports: [RouterLink, HowItWorks, InitialsPipe],
   templateUrl: './invite-participants.html',
   styleUrl: './invite-participants.css',
 })
@@ -110,16 +111,6 @@ export class InviteParticipants implements OnInit {
   /** Copia el código de gestión al portapapeles. */
   protected async copyCode(): Promise<void> {
     this.copiedCode.set(await this.copy(this.pool()?.managementCode ?? ''));
-  }
-
-  /** Iniciales con las que se representa a quien no tiene avatar. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
   }
 
   /** Segunda parte de la carga: quién se ha unido ya. */

@@ -12,10 +12,11 @@ import {
 } from '@app/services/session/participant-session.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
+import { InitialsPipe } from '@app/shared/pipes/initials.pipe';
 
 @Component({
   selector: 'app-my-payment',
-  imports: [RouterLink, DecimalPipe, MonthDatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe, InitialsPipe],
   templateUrl: './my-payment.html',
   styleUrl: './my-payment.css'
 })
@@ -157,16 +158,6 @@ export class MyPayment implements OnInit {
     const dueDay = this.pool()?.paymentDueDay;
 
     return dueDay ? `el día ${dueDay} de cada mes` : 'a lo largo del mes';
-  }
-
-  /** Iniciales con las que se representa a cada participante. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
   }
 
   /** Carga la porra y, encadenados, participantes, orden y mis cuotas. */

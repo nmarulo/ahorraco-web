@@ -7,11 +7,12 @@ import { GetPoolRes } from '@app/models/get-pool-res';
 import { MonthPaymentRes } from '@app/models/get-month-payments-res';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
+import { InitialsPipe } from '@app/shared/pipes/initials.pipe';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-month-payments',
-  imports: [RouterLink, DecimalPipe, MonthDatePipe],
+  imports: [RouterLink, DecimalPipe, MonthDatePipe, InitialsPipe],
   templateUrl: './month-payments.html',
   styleUrl: './month-payments.css'
 })
@@ -130,16 +131,6 @@ export class MonthPayments implements OnInit {
         this.confirming.set(null);
       }
     });
-  }
-
-  /** Iniciales con las que se representa a cada participante. */
-  protected initials(fullName: string): string {
-    return fullName
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('');
   }
 
   /** Carga la porra y, encadenados, participantes, orden y cuotas del mes. */
