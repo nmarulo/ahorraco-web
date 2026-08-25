@@ -11,12 +11,13 @@ import { TurnRes } from '@app/models/turn-res';
 import { HowItWorks } from '@app/modules/pools/components/how-it-works/how-it-works';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
+import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-draw-order',
   imports: [ReactiveFormsModule, RouterLink, DecimalPipe, MonthDatePipe, HowItWorks],
   templateUrl: './draw-order.html',
-  styleUrl: './draw-order.css'
+  styleUrl: './draw-order.css',
 })
 export class DrawOrder implements OnInit {
   /** Cada cuánto cambia el nombre que da vueltas en el bombo. */
@@ -28,6 +29,7 @@ export class DrawOrder implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly organizer = inject(OrganizerSession);
 
   /** Llega de la ruta gracias a `withComponentInputBinding()`. */
   readonly poolId = input.required<string>();
@@ -45,7 +47,7 @@ export class DrawOrder implements OnInit {
 
   protected readonly form = this.formBuilder.nonNullable.group({
     organizerFirst: [false],
-    organizerParticipantId: ['']
+    organizerParticipantId: [''],
   });
 
   /** Quien cobra no paga su cuota: el bote lo ponen todos los demás. */
@@ -77,6 +79,8 @@ export class DrawOrder implements OnInit {
    */
   protected readonly alreadyDrawn = computed(() => this.turns().length > 0 && !this.drawing());
 
+  protected readonly isOrganizer = computed(() => this.organizer.get(this.poolId()) !== null);
+
   constructor() {
     this.form.controls.organizerFirst.valueChanges
       .pipe(takeUntilDestroyed())
@@ -84,6 +88,11 @@ export class DrawOrder implements OnInit {
   }
 
   ngOnInit(): void {
+    if (!this.isOrganizer()) {
+      this.loading.set(false);
+      return;
+    }
+
     this.load();
   }
 
@@ -112,7 +121,7 @@ export class DrawOrder implements OnInit {
         this.errorMessage.set(error.message);
         this.stopDrum();
         this.drawing.set(false);
-      }
+      },
     });
   }
 
@@ -126,14 +135,14 @@ export class DrawOrder implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.loading.set(false);
-      }
+      },
     });
   }
 
   /** Segunda parte de la carga. */
   private loadParticipantsAndOrder(): void {
     this.pools.getParticipants(this.poolId()).subscribe({
-      next: (participants) => this.participants.set(participants)
+      next: (participants) => this.participants.set(participants),
     });
 
     this.pools.getOrder(this.poolId()).subscribe({
@@ -145,7 +154,7 @@ export class DrawOrder implements OnInit {
       error: (error: Error) => {
         this.errorMessage.set(error.message);
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -197,7 +206,7 @@ export class DrawOrder implements OnInit {
 
     return {
       organizerFirst: values.organizerFirst,
-      ...(values.organizerFirst ? { organizerPublicId: values.organizerParticipantId } : {})
+      ...(values.organizerFirst ? { organizerPublicId: values.organizerParticipantId } : {}),
     };
   }
 
