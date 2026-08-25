@@ -8,12 +8,13 @@ import { CreateDrawReq } from '@app/models/create-draw-req';
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
 import { TurnRes } from '@app/models/turn-res';
+import { HowItWorks } from '@app/modules/pools/components/how-it-works/how-it-works';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { MonthDatePipe } from '@app/shared/pipes/month-date.pipe';
 
 @Component({
   selector: 'app-draw-order',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, MonthDatePipe],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe, MonthDatePipe, HowItWorks],
   templateUrl: './draw-order.html',
   styleUrl: './draw-order.css'
 })

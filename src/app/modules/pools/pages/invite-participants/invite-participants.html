@@ -210,6 +210,17 @@
           <!--end::Participantes-->
         </div>
       </div>
+
+      <!--begin::Cómo funciona-->
+      <div class="row">
+        <div class="col-12">
+          <app-how-it-works
+            [numParticipants]="currentPool.numParticipants"
+            [startDate]="currentPool.startDate"
+          />
+        </div>
+      </div>
+      <!--end::Cómo funciona-->
     } @else if (loading()) {
       <p class="text-secondary" role="status">
         <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>

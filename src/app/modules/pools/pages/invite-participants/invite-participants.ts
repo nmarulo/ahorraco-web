@@ -3,12 +3,13 @@ import { RouterLink } from '@angular/router';
 
 import { GetPoolRes } from '@app/models/get-pool-res';
 import { ParticipantRes } from '@app/models/participant-res';
+import { HowItWorks } from '@app/modules/pools/components/how-it-works/how-it-works';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { OrganizerSession } from '@app/services/session/organizer-session.service';
 
 @Component({
   selector: 'app-invite-participants',
-  imports: [RouterLink],
+  imports: [RouterLink, HowItWorks],
   templateUrl: './invite-participants.html',
   styleUrl: './invite-participants.css',
 })
