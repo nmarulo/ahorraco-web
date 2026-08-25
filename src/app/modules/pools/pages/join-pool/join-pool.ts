@@ -8,6 +8,7 @@ import { JoinPoolReq } from '@app/models/join-pool-req';
 import { BodyShellService } from '@app/services/layout/body-shell.service';
 import { PoolsService } from '@app/services/pages/pools.service';
 import { ParticipantSession } from '@app/services/session/participant-session.service';
+import { SelectedPoolSession } from '@app/services/session/selected-pool-session.service';
 
 @Component({
   selector: 'app-join-pool',
@@ -24,16 +25,34 @@ export class JoinPool implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly pools = inject(PoolsService);
   private readonly session = inject(ParticipantSession);
+  private readonly selectedPool = inject(SelectedPoolSession);
 
-  /** Llega de la ruta gracias a `withComponentInputBinding()`. */
-  readonly invitationToken = input.required<string>();
+  /**
+   * Si no se indica aparece un formulario de búsqueda.
+   */
+  readonly invitationToken = input<string>();
 
   protected readonly pool = signal<GetPoolInvitationRes | null>(null);
 
-  protected readonly loading = signal(true);
+  /**
+   * Token de invitación usado para buscar la porra.
+   */
+  private readonly token = signal('');
+
+  protected readonly fromScratchWithoutToken = signal(false);
+
+  protected readonly searchingPool = signal(false);
+  protected readonly notFoundPool = signal(false);
+
+  protected readonly loading = signal(false);
   protected readonly sending = signal(false);
   protected readonly joined = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+
+  /** Paso previo, solo en `/join`: dar con la porra por su código. */
+  protected readonly poolForm = this.formBuilder.nonNullable.group({
+    invitationToken: ['', Validators.required],
+  });
 
   protected readonly form = this.formBuilder.nonNullable.group({
     fullName: ['', [Validators.required, Validators.maxLength(JoinPool.MAX_NAME_LENGTH)]],
@@ -64,8 +83,18 @@ export class JoinPool implements OnInit {
   }
 
   ngOnInit(): void {
-    this.pools.getPoolByInvitation(this.invitationToken()).subscribe({
+    const routeToken = this.invitationToken();
+
+    if (!routeToken) {
+      this.fromScratchWithoutToken.set(true);
+      return;
+    }
+
+    this.loading.set(true);
+    this.pools.getPoolByInvitation(routeToken).subscribe({
       next: (pool) => {
+        this.selectedPool.select({ publicId: pool.publicId, name: pool.name });
+        this.token.set(routeToken);
         this.pool.set(pool);
         this.loading.set(false);
       },
@@ -74,6 +103,42 @@ export class JoinPool implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected searchPool(): void {
+    if (this.searchingPool() || this.poolForm.invalid) {
+      this.poolForm.markAllAsTouched();
+      return;
+    }
+
+    const token = JoinPool.tokenFrom(this.poolForm.getRawValue().invitationToken);
+
+    this.searchingPool.set(true);
+    this.notFoundPool.set(false);
+    this.errorMessage.set(null);
+
+    this.pools.getPoolByInvitation(token).subscribe({
+      next: (pool) => {
+        this.selectedPool.select({ publicId: pool.publicId, name: pool.name });
+        this.token.set(token);
+        this.pool.set(pool);
+        this.searchingPool.set(false);
+      },
+      error: () => {
+        this.notFoundPool.set(true);
+        this.searchingPool.set(false);
+      },
+    });
+  }
+
+  protected searchAnotherPool(): void {
+    this.pool.set(null);
+    this.token.set('');
+    this.joined.set(false);
+    this.notFoundPool.set(false);
+    this.errorMessage.set(null);
+    this.poolForm.reset();
+    this.form.reset();
   }
 
   /** Une a la persona a la porra si el formulario es válido. */
@@ -126,9 +191,19 @@ export class JoinPool implements OnInit {
     const phone = values.phone.trim();
 
     return {
-      invitationToken: this.invitationToken(),
+      invitationToken: this.token(),
       fullName: values.fullName.trim(),
       ...(phone ? { phone } : {}),
     };
+  }
+
+  /**
+   * El campo admite el enlace de invitación entero, que es lo que llega por
+   * WhatsApp. De `…/join/ABC123` se queda con el último tramo.
+   */
+  private static tokenFrom(value: string): string {
+    const trimmed = value.trim().replace(/\/+$/, '');
+
+    return trimmed.slice(trimmed.lastIndexOf('/') + 1);
   }
 }

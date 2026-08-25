@@ -4,6 +4,12 @@ import { AppWrapper } from '@app/layout/app-wrapper/app-wrapper';
 
 export const routes: Routes = [
   {
+    path: 'join',
+    title: 'Ahorraco · Unirse a la porra',
+    loadComponent: () =>
+      import('@app/modules/pools/pages/join-pool/join-pool').then((m) => m.JoinPool)
+  },
+  {
     path: 'join/:invitationToken',
     title: 'Ahorraco · Unirse a la porra',
     loadComponent: () =>

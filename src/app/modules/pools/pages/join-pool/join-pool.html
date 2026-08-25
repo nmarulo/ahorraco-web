@@ -41,6 +41,14 @@
     </div>
     <!--end::Resumen-->
 
+    @if (fromScratchWithoutToken()) {
+      <div class="text-center mb-3">
+        <button type="button" class="btn btn-link btn-sm text-secondary" (click)="searchAnotherPool()">
+          No es esta porra, buscar otra
+        </button>
+      </div>
+    }
+
     @if (joined()) {
       <!--begin::Ya dentro-->
       <div class="card">
@@ -208,6 +216,52 @@
       </div>
       <!--end::Ya estabas dentro-->
     }
+  } @else if (fromScratchWithoutToken()) {
+    <!--begin::Encontrar la porra-->
+    <div class="card">
+      <div class="card-body login-card-body">
+        <p class="login-box-msg pb-2 pt-0">
+          <i class="bi bi-search me-1"></i>
+          Escribe el código de invitación para encontrar tu porra.
+        </p>
+
+        @if (notFoundPool()) {
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            No hay ninguna porra con ese código de invitación.
+          </div>
+        }
+
+        <form [formGroup]="poolForm" (ngSubmit)="searchPool()">
+          <label for="invitationToken" class="form-label">Código de invitación</label>
+          <input
+            type="text"
+            id="invitationToken"
+            class="form-control hrr-code-field mb-1"
+            [class.hrr-is-invalid]="notFoundPool()"
+            formControlName="invitationToken"
+            placeholder="XXXXXXXXXX"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <div class="form-text mb-3">
+            Es el código que te pasaron por WhatsApp. Puedes pegar el enlace entero.
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="searchingPool()">
+              @if (searchingPool()) {
+                <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+                Buscando…
+              } @else {
+                <i class="bi bi-search me-1"></i> Buscar mi porra
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!--end::Encontrar la porra-->
   } @else {
     <div class="alert alert-warning" role="alert">
       <i class="bi bi-exclamation-triangle-fill me-2"></i>
